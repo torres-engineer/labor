@@ -1,0 +1,11 @@
+- <https://ilostat.ilo.org/>
+- <https://www.wikimedia.org/>
+- <https://query.wikidata.org/>
+- <https://commons.wikimedia.org/wiki/Main_Page>
+- <https://www.mediawiki.org/wiki/MediaWiki>
+- <https://www.wikipedia.org/>
+- <https://wikiba.se/>
+- <https://data.worldbank.org/>
+- <https://ourworldindata.org/>
+- <https://www.ituc-csi.org/>
+- <https://wid.world/>

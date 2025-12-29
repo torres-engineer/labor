@@ -37,4 +37,5 @@ for (file in list.files(raw_dir, pattern = "\\.rds$", full.names = TRUE)) {
 
     name <- str_replace(basename(file), "\\.rds$", "")
     write_rds(dat_clean, file.path(clean_dir, paste0(name, ".rds")))
+    write_csv(dat_clean, file.path(clean_dir, paste0(name, ".csv")))
 }

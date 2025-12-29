@@ -1,0 +1,516 @@
+\documentclass[12pt,a4paper,openright,oneside]{memoir}
+
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+  \defaultfontfeatures{Ligatures=TeX}
+  \setmainfont{EB Garamond}[
+    Scale = 1.0
+  ]
+\else
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{mathptmx}
+\fi
+
+\usepackage{polyglossia}
+\setdefaultlanguage{portuguese}
+\setotherlanguage{english}
+
+\usepackage[a4paper,top=3cm,bottom=3cm,left=2cm,right=2cm]{geometry}
+
+\OnehalfSpacing
+
+\maxsecnumdepth{subsection}
+\setcounter{secnumdepth}{3}
+\setsecnumformat{\csname the#1\endcsname\quad}
+
+\chapterstyle{section}
+\renewcommand*{\chapnamefont}{\normalfont\Large\scshape}
+\renewcommand*{\chaptitlefont}{\normalfont\Huge\bfseries}
+
+\usepackage{caption}
+\DeclareCaptionLabelFormat{ipbeja}{#1~#2}
+\captionsetup{
+  labelfont=bf,
+  labelsep=none,
+  format=plain,
+  textfont=it,
+  justification=justified,
+  singlelinecheck=false,
+  labelformat=ipbeja
+}
+
+\captionsetup[table]{position=top}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\usepackage{minted}
+\setminted{
+  linenos,
+  breaklines,
+  frame=lines,
+  fontsize=\small
+}
+
+\usepackage[style=apa, backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
+\usepackage{csquotes}
+
+\newcommand{\Institute}{Instituto Politécnico de Beja}
+\newcommand{\School}{Escola Superior de Tecnologia e Gestão}
+\newcommand{\Degree}{Licenciatura em Engenharia Informática}
+\newcommand{\Course}{Sistemas de Informação}
+\newcommand{\Title}{Exploração e Desigualdade Laboral Global através de Dados Abertos}
+\newcommand{\Subtitle}{Engenharia de Dados}
+\newcommand{\Author}{João Augusto Costa Branco Marado Torres}
+\newcommand{\Advisor}{Dr.ª Isabel Sofia Sousa Brito}
+\newcommand{\JuryMemberFirst}{Dr. João Paulo Trindade}
+\newcommand{\JuryMemberSecond}{Dr.ª Elsa da Piedade Chinita Soares Rodrigues}
+\newcommand{\Date}{Beja, dezembro de 2025}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{hyperxmp}
+\hypersetup{
+  pdfauthor={\Author},
+  pdftitle={\Title},
+  pdflicenseurl={https://creativecommons.org/licenses/by-sa/4.0/},
+  pdfcopyright={© 2025 \Author --- CC BY-SA 4.0 for PDF, AGPL v3 for source},
+}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{center}
+    \includegraphics{Logotipo_IPBeja_horizontal-5/IPbeja_horizontal}
+
+    \bigskip
+
+    \textsc{\large \School}\\{\large \Degree}
+
+    \bigskip
+
+    \textsc{\large \Course}
+
+    \vspace{4\baselineskip}
+
+    \textsc{\Huge \Title}
+
+    \smallskip
+
+    {\Large \Subtitle}
+
+    \bigskip
+
+    {\large\bfseries \Author}
+
+    \vfill
+
+    \begin{center}
+        \includegraphics[height=25mm,keepaspectratio]{Logotipos_ESTIG/estig}%
+    \end{center}
+
+    \vfill
+
+    {\footnotesize \Date}
+\end{center}
+
+\cleardoublepage
+
+\thispagestyle{empty}
+\begin{center}
+    \textsc{\large \Institute}
+
+    \bigskip
+
+    \textsc{\large \School}\\{\large \Degree}
+
+    \bigskip
+
+    \textsc{\large \Course}
+
+    \vspace{4\baselineskip}
+
+    \textsc{\Huge \Title}
+
+    \smallskip
+
+    {\Large \Subtitle}
+
+    \bigskip
+
+    {\large\bfseries \Author}
+
+    \vspace{2\baselineskip}
+
+    {\large Trabalho realizado no âmbito da unidade curricular de \Course}
+
+    \vspace{2\baselineskip}
+
+    \textsc{Orientação}
+
+    \bigskip
+
+    \Advisor
+
+    \vfill
+
+    {\footnotesize \Date}
+\end{center}
+
+\cleardoublepage
+
+\thispagestyle{empty}
+\begin{center}
+  \textbf{Júri}
+
+  \bigskip
+
+  Responsável: \Advisor\\
+  Vogal: \JuryMemberFirst\\
+  Vogal: \JuryMemberSecond\\
+\end{center}
+\clearpage
+
+\pagenumbering{roman}
+% \fancyfoot[R]{\fontsize{8}{9}\selectfont\thepage}
+
+% \chapter*{Resumo}
+% \addcontentsline{toc}{chapter}{Resumo}
+% \noindent
+% ...
+%
+% \bigskip
+%
+% \textbf{Palavras-chave:} ...
+%
+% \chapter*{Abstract}
+% \addcontentsline{toc}{chapter}{Abstract}
+% \noindent
+% ...
+%
+% \bigskip
+%
+% \textbf{Keywords:} ...
+%
+% \chapter*{Dedicatória}
+% \addcontentsline{toc}{chapter}{Dedicatória}
+% \begin{flushright}
+%     ...
+% \end{flushright}
+%
+% \chapter*{Agradecimentos}
+% \addcontentsline{toc}{chapter}{Agradecimentos}
+% ...
+
+\clearpage
+\tableofcontents
+\clearpage
+% \listoffigures
+% \clearpage
+% \listoftables
+% \clearpage
+
+\chapter*{Lista de Abreviaturas e Siglas}
+\addcontentsline{toc}{chapter}{Lista de Abreviaturas e Siglas}
+\begin{description}
+    \item[ETL] \textit{Extract, Transform, Load}
+    \item[FAIR] \textit{Findable, Accessible, Interoperable, Reusable}
+    \item[FLOSS] \textit{Free \textit{Libre} and Open Source Software}
+    \item[FMI] Fundo Monetário Internacional
+    \item[GUI] \textit{Graphical User Interface}
+    \item[IED] Investimento Estrangeiro Direto
+    \item[ILO] \textit{Internacional Labor Organization}
+    \item[OLAP] \textit{Online Analytical Processing}
+    \item[ONU] Organização das Nações Unidas
+    \item[PIB] Produto Interno Bruto
+    \item[POSIX] \textit{Portable Operating System Interface}
+    \item[PPC] Paridade do Poder de Compra
+    \item[URI] \textit{Uniform Resource Identifier}
+\end{description}
+
+% \chapter*{Simbologia e Notação}
+% \addcontentsline{toc}{chapter}{Simbologia e Notação}
+% \begin{description}
+%   \item[$x$] variável independente
+%   \item[$y$] variável dependente
+% \end{description}
+
+\clearpage
+\pagenumbering{arabic}
+% \fancyfoot[R]{\fontsize{8}{9}\selectfont\thepage}
+
+\chapter{Introdução}
+\label{ch:intro}
+
+As transformações recentes do capitalismo por conta da crise da ordem têm sido acompanhadas por um agravamento das desigualdades económicas e sociais, particularmente no domínio do trabalho e da distribuição do rendimento à escala mundial, levando à austeridade e reformas laborais. Diferenças persistentes nos níveis salariais e na estabilidade do emprego evidenciam assimetrias estruturais entre países e regiões, onde pessoas vivem bem numa parte do mundo em troca de outras viverem na miséria.
+
+Este é o tema do trabalho: exploração global do trabalho e a desigualdade num nível global.
+
+A disponibilização de \textit{datasets} por múltiplos organismos internacionais e instituições públicas cria possibilidades para a análise destas desigualdades. Em particular, dados ao longo do tempo (\textit{time series}), usando engenharia de dados e análise, permitem observar a evolução histórica de indicadores laborais e identificar tendências de longo prazo. Exemplos de tais indicadores podem ser as participações do rendimento do trabalho no PIB Produto Interno Bruto (PIB), coeficiente de Gini… (ver Apêndice~\ref{ap:indicators} para definições e fórmulas). Era interessante conseguir analisar como a divisão do trabalho na dinâmica imperialista e neoliberal atual se manifestam nas acumulações desiguais, nas dependências imperialistas, na precariedade, nos salários, nas condições de trabalho…
+
+Apesar da abundância de dados estatísticos disponíveis, a análise da desigualdade laboral global permanece fragmentada. Os dados encontram-se dispersos por múltiplas fontes e são frequentemente analisados de forma isolada, através de indicadores únicos.
+
+Esta separação dificulta a compreensão das relações entre salários, rendimento, condições de trabalho e ação direta laboral (como as greves), bem como a identificação de contradições estruturais do capitalismo.
+
+\section{Objetivos}
+
+O objetivo geral deste projeto é investigar a relação entre a produtividade e parcelas salariais. Avaliar a dependência das trocas comerciais e do Investimento Estrangeiro Direto (IED) no \textit{labor share}. Analisar as principais razões para as greves, por exemplo, se o salário não sobe por muito tempo. É apresentar as contradições do capitalismo usando dados \textit{timeseries} abertos num formato multidimensional e ferramentas livres demonstrando a viabilidade técnica e ética dos mesmos. Pretende-se construir um modelo de dados que permita observar, de forma conjunta, diferentes indicadores relacionados com salários, rendimento e condições laborais, entre países ou regiões e ao longo do tempo.
+
+De forma mais específica, o projeto visa:
+\begin{itemize}
+    \item recolher e integrar dados provenientes de múltiplas fontes abertas;
+    \item estruturar esses dados num modelo multidimensional adequado à análise;
+    \item produzir análises e visualizações que evidenciem padrões, assimetrias e tendências relevantes.
+\end{itemize}
+
+\subsection{Questões de investigação}
+
+Existe uma relação sistemática entre produtividade do trabalho e \textit{labor
+share}?
+
+Essa relação difere entre países centrais e periféricos?
+
+Indicadores de dependência externa (IED) estão associados a menor \textit{labor
+share}?
+
+Existe associação entre precariedade e ação direta?
+
+\subsubsection{Hipóteses}
+
+% Os trabalhadores trabalhando "melhor" receberão pior.
+Em contextos de aumento da produtividade do trabalho, a parcela salarial do PIB tende a permanecer estagnada ou a diminuir.
+
+% Alguns países "sugam" os recursos de outros.
+A inserção subordinada na economia global está associada à transferência sistemática de valor do trabalho de países periféricos para países centrais.
+
+% Países com maior produtividade do trabalho apresentam, em média, maior
+% parcela salarial do PIB.
+%
+% Países com aumento de produtividade do trabalho não apresentam aumento
+% proporcional da parcela salarial do PIB.
+%
+% A relação entre produtividade e parcela salarial é mais positiva em países
+% centrais do que em países periféricos.
+%
+% Quanto maior a dependência externa de um país (IED elevado e maior abertura
+% comercial), menor é a parcela salarial do PIB.
+%
+% Períodos de estagnação ou queda da parcela salarial estão associados a maior
+% número de greves ou conflitos laborais.
+
+\section{Abordagem e Estrutura do trabalho}
+
+Para alcançar estes objetivos, o trabalho adota uma abordagem baseada em engenharia de dados e o modelo de análise \textit{Online Analytical Processing} (OLAP). O processo inclui a aplicação do padrão \textit{Extract, Transform, Load} (ETL), a construção de um \textit{data warehouse} e a realização de análises multidimensionais via "cubos" (uma base de dados multidimensional em conceito), tabelas e visualizações.
+
+O trabalho encontra-se organizado em três capítulos principais. Após esta introdução, o capítulo de desenvolvimento apresenta o enquadramento teórico, a metodologia adotada, a análise dos dados e a discussão dos resultados. Por fim, o capítulo de conclusão sintetiza os principais resultados, discute as limitações do estudo e aponta possíveis direções para trabalhos futuros.
+
+\chapter{Desenvolvimento}
+\label{ch:dev}
+
+\section{Enquadramento teórico}
+
+\subsection{Limitações dos dados estatísticos}
+\label{sec:limits}
+
+Com informações como estas, como se mede exatamente a exploração, a dependência do imperialismo, a precariedade, ou a extração de valor. Não é bem o objetivo medir a exploração diretamente de dados monetários como o PIB e os outros. Talvez isso nem seja possível e não é só uma questão de eu não o saber fazer. O meu objetivo é pegar nesses dados e usá-los para fazer uma análise empírica, quer dizer, observando os dados, e olhando para o mundo em que vivemos, e chegar à conclusão que a minha análise bate certo com a realidade, e é consistente com teorias da economia política. Eu penso que os dados que escolho usar têm uma relação suficientemente forte para conseguir testar a minhas hipóteses, apesar das limitações. Seria parecido às formas de como é medida a qualidade de vida, que não é algo que se meça diretamente.
+
+Outra coisa é que pelos dados serem de fontes diferentes, podem usar definições e metodologias diferentes para calcular o mesmo (teoricamente), que depois pode causar-me problemas se eu não tiver cuidado. É algo com que preciso de ter atenção na etapa~\ref{sec:transform} do ETL.
+
+\section{Metodologia}
+
+\subsection{Escolha das técnologias e \textit{software}, e técnicas de análise}
+
+Como queria fazer algo reproduzível, decidi usar R ou Python para o ETL, com ajuda de \textit{scripts} \textit{Portable Operating System Interface} (POSIX) e \textit{Makefiles}. Para o \textit{load} eu achei a base de dados DuckDB, que depois descobri que basicamente consigo fazer o ETL inteiro apenas usando essa base de dados. Para a parte de análise, Jupyter Notebooks ou R Markdown, ou apenas Python ou R com bibliotecas como Gnuplot ou parecido. Depois consigo gerar PDFs e PostScripts.
+
+No final, se tiver tempo, experimentar codificar os dados para um formato de 4 estrelas no mínimo, RDF ou JSON-LD.
+
+Penso em usar os serviços da Wikimedia Foundation também, caso precise de informação extra, ou se eu quiser contribuir para o projeto com a informação que conseguir retirar da análise.
+
+Durante a análise, vou experimentar várias formas de mostrar as informações: tabelas a partir do \textit{pivot}, correlações, regressões…
+
+Quero depois disponibilizar os dados tratados em formatos abertos, usando \textit{Uniform Resource Identifier} (URI) sempre que possível para identificadores de países ou anos. Garantir que está tudo FAIR. E documentar neste relatório o processo ETL.
+
+Estas decisões não foram feitas ao calhas. Eu tenho uma ideia muito forte de como todos devemos usar e criar software, incluindo, mas especialmente para trabalhos académicos. A explicação para isso está no Apêndice~\ref{ch:y_libre_n_open}.
+
+\subsection{Fontes de dados}
+
+Durante a minha pesquisa achei múltiplas potenciais fontes de dados na Internet capazes de me ajudar nesta tarefa:
+
+\begin{description}
+    \item[Organização Internacional do Trabalho] Disponibiliza dados sobre empregabilidade, salários, \textit{labor share}, sindicalização, horas de trabalho;
+    \item[Banco Mundial] Para dados como o PIB, Gini, abertura comercial, fluxos de capital;
+    \item[Our World In Data] Oferece diversas informações como a desigualdade, salário mínimo, ou sobre o trabalho informal e desemprego;
+    \item[Wikidata] Para qualquer metadados que eu necessite, sobre países, empresas, sindicatos e protestos relacionados ao trabalho;
+    \item[Confederação Sindical Internacional] Eles fazem os "\textit{ITUC Global Rights Index}" cada ano onde eu consigo encontrar informações como violações ao direito dos trabalhadores;
+    \item[Base de dados sobre Desigualdade Mundial] Uma base de dados sobre a evolução histórica da distribuição mundial do rendimento e da riqueza, dentro como entre países.
+\end{description}
+
+Dado o caráter dos dados das fontes utilizadas, sem nenhuma relação inicial, a análise baseia-se em indicadores indiretos, entendidos como aproximações empíricas a processos sociais mais complexos, ou seja, vamos relacionar esses valores para termos uma aproximação dos valores que realmente queremos, e que na realidade, são impossíveis de medir: exploração. Como foi falado na \ref{sec:limits}
+
+Por exemplo, o PIB representa o valor de riqueza produzido num espaço de tempo num determinado local. Com dados sobre o número de horas trabalhadas durante esse espaço de tempo, eu consigo ter a razão do PIB por hora de trabalho. Quanto maior esse valor, então mais riqueza foi gerada em uma hora, maior a produtividade. Depois temos dados como o \textit{labor share}: qual é a percentagem do rendimento gerado num espaço de tempo num determinado local — pode ser a percentagem do PIB — que foi para quem gerou o rendimento (trabalhadores), por exemplo, em salários, ao invés de ir para o capital. Com isto, posso fazer uma hipótese empírica de que, em economias periféricas, aumentos de produtividade não se traduzem em aumentos proporcionais da parcela salarial.
+
+\subsection{\textit{Extract, Transform, and Load}}
+
+\subsubsection{\textit{Extract}}
+
+\subsubsection{\textit{Transform}}
+\label{sec:transform}
+
+\subsubsection{\textit{Load}}
+
+\subsection{Modelo multidimensional}
+
+O modelo multidimensional proposto organiza os dados em torno de uma tabela de factos centrada em indicadores económicos e laborais, articulada com dimensões temporais, geográficas e estruturais.
+
+\subsubsection{Tabelas de factos e dimensões}
+
+A tabela de fatos é composta por indicadores económicos com relação ao trabalho. Teria como medidas o \textit{labor share}, as \textit{real wages}, o Gini, a produtividade, fluxos de IED, e dias de greve. As dimensões seriam o tempo (ano, década), país, região, setor, tipo de trabalho (formal ou informal).
+
+Para o "cubo", usaria essas dimensões, como o tempo e a geografia — países e regiões, norte e sul global, classificações dos países conforme o Fundo Monetário Internacional (FMI) e a Organização das Nações Unidos (ONU) —, como forma de "divisão" de dados para análise.
+
+\section{Análise}
+
+\subsection{OLAP}
+
+\section{Discussão}
+
+Na União Europeia, por exemplo, para conseguirem ter mais dinheiro para gastar em fins bélicos, vemos acontecer por vários países da federação, cortes orçamentais na segurança social e na educação e saúde pública, e com isso, reformas nas leis laborais com o intuito de aumentar a produtividade, que em troca, traz o aumento da precariedade do trabalhador e o aumento da desigualdade económica se a parcela salarial não aumentar com o aumento da produtividade. Por isso vemos na Europa várias greves gerais quase em simultâneo: 2 de dezembro na França, 28 de novembro e 12 de dezembro na Itália, de 24 a 26 de novembro na Bélgica, e aqui em Portugal a 11 de dezembro. Os sindicatos falham ao não relacionarem estes eventos, demonstrando que o problema não desaparece quando passamos as bordas do país, e que a luta e resistência é internacionalista, neste caso, é a nível europeu.
+
+Na União Europeia, por exemplo, para conseguirem ter mais dinheiro para gastar em fins bélicos, vemos acontecer por vários países da federação, cortes orçamentais na segurança social e na educação e saúde pública, e com isso, reformas nas leis laborais com o intuito de aumentar a produtividade, que em troca, traz o aumento da precariedade do trabalhador e o aumento da desigualdade económica se a parcela salarial não aumentar com o aumento da produtividade. Por isso vemos na Europa várias greves gerais quase em simultâneo.
+
+\chapter{Conclusão}
+\label{ch:conclusion}
+
+\clearpage
+\printbibliography[title={Referências Bibliográficas}]
+
+\clearpage
+\chapter*{Licença}
+\addcontentsline{toc}{chapter}{Licença}
+\noindent
+Este documento está licenciado sob uma
+\href{https://creativecommons.org/licenses/by-sa/4.0/}{Licença Creative Commons Atribuição–Partilha nos Mesmos Termos 4.0 Internacional (CC BY-SA 4.0)}.
+
+\vspace{0.5cm}
+O código fonte (ficheiros \texttt{.tex}, \texttt{.bib}, \texttt{Makefile}, etc.) utilizado para produzir este relatório está licenciado sob a
+\href{https://www.gnu.org/licenses/agpl-3.0.html}{GNU Affero General Public License v3.0 (AGPL v3)}.
+
+\clearpage
+\appendix
+
+\chapter{Indicadores}
+\label{ap:indicators}
+
+\section{PIB}
+
+GDP
+
+GDP (current US\$)
+
+Gross domestic product is the total income earned through the production of
+goods and services in an economic territory during an accounting period. It can
+be measured in three different ways: using either the expenditure approach, the
+income approach, or the production approach. This indicator is expressed in
+current prices, meaning no adjustment has been made to account for price
+changes over time. This indicator is expressed in United States dollars.
+
+\section{Participação do rendimento do trabalho}
+
+Labour (income) share
+
+\section{Índice de Gini}
+
+Gini index
+
+Gini index measures the extent to which the distribution of income (or, in some
+cases, consumption expenditure) among individuals or households within an
+economy deviates from a perfectly equal distribution. A Lorenz curve plots the
+cumulative percentages of total income received against the cumulative number
+of recipients, starting with the poorest individual or household. The Gini
+index measures the area between the Lorenz curve and a hypothetical line of
+absolute equality, expressed as a percentage of the maximum area under the
+line. Thus a Gini index of 0 represents perfect equality, while an index of 100
+implies perfect inequality.
+
+\section{Investimento direto estrangeiro}
+
+Investimento direto estrangeiro, entradas líquidas (Balança de Pagamentos, US\$ atuais)
+
+Foreign direct investment, net inflows (BoP, current US\$)
+
+Foreign direct investment refers to direct investment equity flows in the
+reporting economy. It is the sum of equity capital, reinvestment of earnings,
+and other capital. Direct investment is a category of cross-border investment
+associated with a resident in one economy having control or a significant
+degree of influence on the management of an enterprise that is resident in
+another economy. Ownership of 10 percent or more of the ordinary shares of
+voting stock is the criterion for determining the existence of a direct
+investment relationship. Data are in current U.S. dollars.
+
+\section{Profit sharing}
+
+\section{Real wages}
+
+\chapter{Justificação das escolhas tecnológicas}
+\label{ch:y_libre_n_open}
+
+Eu uso Linux e não Microsoft Windows já faz 5 anos. Por várias razões, mas tudo
+tem a mesma raiz do problema: Windows é \textit{software} proprietário.
+
+\section{\textit{Software} livre}
+
+Eu vou, sempre que conseguir, usar \textit{free, \textit{libre}, and open
+source software} (FLOSS). Muitas vezes tenho que ceder aos monopólios do
+\textit{software}, porque não o fazer prejudica-me na vida fora do digital. Por
+exemplo, parece que muita da infraestrutura informática do politécnico depende
+da Microsoft, a começar pelos correios eletrónicos disponibilizados para os
+alunos. Eu sendo aluno, tenho que o usar porque senão perco acesso à informação
+importante para completar a minha formação. E é assim que estes oligarcas
+digitais criam dependências nos seus \textit{software}. Mas eles são capazes de
+se introduzir em muito mais do que apenas na vida académica e nos estudos. Quer
+dizer, caraças, eles metem-se em tudo o que conseguem, desde que haja lucro
+sendo feito.
+
+Na pedagogia e ensino, devia ser ilegal o uso de \textit{software}
+proprietário, já que este vai contra todos os fundamentos da educação.
+\textit{Software} livre tem que ser a norma. O \textit{software} que deixa o
+estudante aprender e estudar o \textit{software} que usa, executar o
+\textit{software} da forma que lhe for mais conveniente, modificar para as suas
+necessidades, e conseguir partilhar a sabedoria que adquiriu com qualquer um.
+
+Acho que já deu para ter uma ideia do porquê da minha indignação. E para minha
+surpresa, esta cadeira pede para o aluno usar Microsoft Excel, Microsoft Power
+BI e Microsoft SQL Server. Primeiro, que eu nem consigo usar alguns desses
+\textit{softwares} no meu portátil sem ter que ter o Windows como sistema
+operativo — isso é que nem pensar. E depois que existem alternativas, e boas
+(senão melhores) que são livres. Vou mencionar OpenRefine e Apache Superset que
+fazem tudo o que era necessário. Não os usei porque, igual às ferramentas da
+Microsoft, esses não oferecem uma forma simples de reproduzir as mesmas ações
+em qualquer outra máquina.
+
+\section{Dados Abertos}
+
+Falando mais sobre a cadeira, uns tópicos que eu acho que deviam ser pelo menos
+mencionados é o dos dados abertos mencionando o esquema da implementação das 5
+estrelas e os princípios \textit{Findable, Accessible, Interoperable, Reusable}
+(FAIR). Mas claramente não querem saber disso. Incentivam a usar o formato
+proprietário do Excel (duas estrelas). Não querem nos ensinar a explorar,
+aprender, adquirir um pensamento crítico independente, mas sim a consumir a
+droga do \textit{software} proprietário, e aceitar que tem que ser assim, que
+estas são as ferramentas corretas.
+
+Não querem ensinar como aprender, mas sim o que aprender. A resistência em
+adotar a educação aberta decorre do desejo de controlar o que aprendemos. E nem
+tentam esconder mais isto. É triste perguntar a razão de estarmos a aprender
+algo e a resposta ser “porque é o que as empresas querem”.
+
+\backmatter
+
+\end{document}
+
+% CITATIONS TO CLAIMS ???

@@ -1,4 +1,4 @@
-MAIN=report
+MAIN=data_engineering
 LATEXMK=latexmk
 BIBER=biber
 # PDF2PS=gs -dNOPAUSE -dBATCH -sDEVICE=ps2write -sOutputFile=$(MAIN).ps

@@ -1,35 +1,51 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-set -euo pipefail
+set -eu
 
 RAW_DIR="data/raw/worldbank"
+BASE_URL="https://api.worldbank.org/v2/en/indicator"
 
 mkdir -p "$RAW_DIR"
 
 fetch_zip() {
-    URL="$1"
-    tmp="$(mktemp)"
-    trap 'rm -f "$tmp"' EXIT
+    url="$1"
 
-    if ! curl -fsSL "$URL" -o "$tmp"; then
-        echo "Download of $URL failed" >&2
+    tmp=$(mktemp) || return 1
+
+    if ! curl -fsSL "$url" > "$tmp"; then
+        echo "Download failed: $url" >&2
+        rm -f "$tmp"
         return 1
     fi
 
-    if ! unzip -o "$tmp" -d "$RAW_DIR"; then
-        echo "Extraction of $URL failed" >&2
+    if ! unzip -oq "$tmp" -d "$RAW_DIR"; then
+        echo "Extraction failed: $url" >&2
+        rm -f "$tmp"
         return 1
     fi
+
     rm -f "$tmp"
-    echo "Fetched and extracted $URL to $RAW_DIR"
-    return 0
+    echo "Fetched and extracted: $url"
 }
 
-# GDP (current US$)
-fetch_zip "https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.CD?downloadformat=csv"
+# GDP, PPP (constant 2021 international $)
+# GDP (constant 2015 US$)
+# GDP (constant LCU)
 # Gini index
-fetch_zip "https://api.worldbank.org/v2/en/indicator/SI.POV.GINI?downloadformat=csv"
 # Foreign direct investment, net inflows (BoP, current US$)
-fetch_zip "https://api.worldbank.org/v2/en/indicator/BX.KLT.DINV.CD.WD?downloadformat=csv"
+# Foreign direct investment, net outflows (BoP, current US$)
+INDICATORS="
+NY.GDP.MKTP.PP.KD
+NY.GDP.MKTP.KD
+NY.GDP.MKTP.KN
+SI.POV.GINI
+BX.KLT.DINV.CD.WD
+BM.KLT.DINV.CD.WD
+"
 
-sed -i 's/\r$//' $RAW_DIR/*.csv
+echo "$INDICATORS" |
+while read -r code; do
+    [ -z "$code" ] && continue
+
+    fetch_zip "$BASE_URL/$code?downloadformat=csv"
+done

@@ -1,0 +1,85 @@
+@startuml(id=ER)
+
+!option handwritten true
+
+skinparam linetype ortho
+
+entity dim_geo {
+  *id : integer <<PK>> <<generated>>
+  --
+  code_iso : text
+  wikidata_qid : text
+  code_wb : text
+  code_ilo : text
+  *name : text
+  *geo_type : text
+  region : text
+  income_group : text
+  special_notes : text
+}
+
+entity bridge_geo_membership {
+  *parent : integer <<PK>> <<FK>>
+  *child  : integer <<PK>> <<FK>>
+  --
+  *valid_from : <<FK>>
+  valid_to   : <<FK>>
+}
+
+entity dim_date {
+  *id : integer <<PK>> <<generated>>
+  --
+  year : integer
+  quarter : integer
+  month : integer
+  is_yearly : boolean
+  is_monthly : boolean
+}
+
+entity dim_source {
+  *id : integer <<PK>> <<generated>>
+  --
+  code : text
+  *name : text
+}
+
+entity dim_indicator {
+  *id : integer <<PK>> <<generated>>
+  --
+  *code : text
+  *name : text
+  *domain : text
+  *unit : text
+  *measure_type : text
+  *source : integer <<FK>>
+  source_note : text
+}
+
+entity dim_obs_status {
+  *id : integer <<PK>> <<generated>>
+  --
+  code : text
+  label: text
+}
+
+entity fact_macroecon {
+  *id : integer <<PK>> <<generated>>
+  --
+  *geo : integer <<FK>>
+  *date : integer <<FK>>
+  *indicator : integer <<FK>>
+  obs_status : integer <<FK>>
+  value : numeric
+}
+
+dim_geo ||--o{ fact_macroecon
+dim_date ||--o{ fact_macroecon
+dim_indicator ||--o{ fact_macroecon
+dim_obs_status ||--o{ fact_macroecon
+
+dim_source ||--o{ dim_indicator
+
+' hide the spot
+hide circle
+
+@enduml

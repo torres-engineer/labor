@@ -4,6 +4,16 @@
 
 skinparam linetype ortho
 
+entity dim_date {
+  *id : integer <<PK>> <<generated>>
+  --
+  year : integer
+  quarter : integer
+  month : integer
+  is_yearly : boolean
+  is_monthly : boolean
+}
+
 entity dim_geo {
   *id : integer <<PK>> <<generated>>
   --
@@ -18,23 +28,13 @@ entity dim_geo {
   special_notes : text
 }
 
-entity bridge_geo_membership {
-  *parent : integer <<PK>> <<FK>>
-  *child  : integer <<PK>> <<FK>>
-  --
-  *valid_from : <<FK>>
-  valid_to   : <<FK>>
-}
-
-entity dim_date {
-  *id : integer <<PK>> <<generated>>
-  --
-  year : integer
-  quarter : integer
-  month : integer
-  is_yearly : boolean
-  is_monthly : boolean
-}
+' entity bridge_geo_membership {
+'   *parent : integer <<PK>> <<FK>>
+'   *child : integer <<PK>> <<FK>>
+'   --
+'   *valid_from : integer <<FK>>
+'   valid_to : integer <<FK>>
+' }
 
 entity dim_source {
   *id : integer <<PK>> <<generated>>
@@ -52,13 +52,41 @@ entity dim_indicator {
   *unit : text
   *measure_type : text
   *source : integer <<FK>>
-  source_note : text
 }
 
 entity dim_obs_status {
   *id : integer <<PK>> <<generated>>
   --
   code : text
+  label: text
+}
+
+entity dim_sex {
+  *id : integer <<PK>> <<generated>>
+  --
+  code: text
+  name: text
+}
+
+entity dim_econ_activity {
+  *id : integer <<PK>> <<generated>>
+  --
+  code: text
+  scheme: text
+  name: text
+}
+
+entity dim_sector {
+  *id : integer <<PK>> <<generated>>
+  --
+  code: text
+  name: text
+}
+
+entity dim_currency {
+  *id : integer <<PK>> <<generated>>
+  --
+  code: text
   label: text
 }
 
@@ -72,12 +100,73 @@ entity fact_macroecon {
   value : numeric
 }
 
+entity fact_wages {
+  *id : integer <<PK>> <<generated>>
+  --
+  *geo : integer <<FK>>
+  *date : integer <<FK>>
+  *indicator : integer <<FK>>
+  *sex : integer <<FK>>
+  *econ_activity : integer <<FK>>
+  *currency : integer <<FK>>
+  obs_status : integer <<FK>>
+  value : numeric
+}
+
+entity fact_employment {
+  *id : integer <<PK>> <<generated>>
+  --
+  *geo : integer <<FK>>
+  *date : integer <<FK>>
+  *indicator : integer <<FK>>
+  *sex : integer <<FK>>
+  *econ_activity : integer <<FK>>
+  *sector : integer <<FK>>
+  obs_status : integer <<FK>>
+  value : numeric
+}
+
+' entity dim_note {
+'   *id : integer <<PK>> <<generated>>
+'   --
+'   code : text
+'   label : text
+'   note_type : text
+' }
+'
+' entity bridge_fact_note {
+'   *fact_id : integer <<FK>>
+'   *note_id : integer <<FK>>
+' }
+
 dim_geo ||--o{ fact_macroecon
 dim_date ||--o{ fact_macroecon
 dim_indicator ||--o{ fact_macroecon
 dim_obs_status ||--o{ fact_macroecon
 
+dim_geo ||--o{ fact_wages
+dim_date ||--o{ fact_wages
+dim_indicator ||--o{ fact_wages
+dim_sex ||--o{ fact_wages
+dim_econ_activity ||--o{ fact_wages
+dim_currency ||--o{ fact_wages
+dim_obs_status ||--o{ fact_wages
+
+dim_geo ||--o{ fact_employment
+dim_date ||--o{ fact_employment
+dim_indicator ||--o{ fact_employment
+dim_sex ||--o{ fact_employment
+dim_econ_activity ||--o{ fact_employment
+dim_sector ||--o{ fact_employment
+dim_obs_status ||--o{ fact_employment
+
+' dim_geo ||--o{ bridge_geo_membership
+' dim_date ||--o{ bridge_geo_membership
+
 dim_source ||--o{ dim_indicator
+
+' fact_employment ||--o{ bridge_fact_note
+' dim_note ||--o{ bridge_fact_note
 
 ' hide the spot
 hide circle

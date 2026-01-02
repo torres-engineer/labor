@@ -160,15 +160,24 @@ dim_currency <- wages %>%
 write_rds(dim_currency, file.path(clean_dir, "dim_currency.rds"))
 write_csv(dim_currency, file.path(clean_dir, "dim_currency.csv"))
 
-# write_rds(dim_obs_status, file.path(clean_dir, "dim_obs_status.rds"))
-# write_csv(dim_obs_status, file.path(clean_dir, "dim_obs_status.csv"))
+dim_obs_status <- bind_rows(
+  employment %>% select(obs_status, obs_status_label),
+  wages %>% select(obs_status, obs_status_label),
+  macro %>% select(obs_status, obs_status_label)
+) %>%
+  distinct() %>%
+  select(code = obs_status, label = obs_status_label)
+
+write_rds(dim_obs_status, file.path(clean_dir, "dim_obs_status.rds"))
+write_csv(dim_obs_status, file.path(clean_dir, "dim_obs_status.csv"))
 
 fact_macroecon <- macro %>%
   transmute(
     geo = ref_area,
     date = time,
     indicator = paste(indicator, source, sep = " | "),
-    value = obs_value
+    value = obs_value,
+    obs = obs_status
   )
 
 write_rds(fact_macroecon, file.path(clean_dir, "fact_macroecon.rds"))
@@ -182,7 +191,8 @@ fact_wages <- wages %>%
     sex,
     econ_activity = classif1,
     currency = classif2,
-    value = obs_value
+    value = obs_value,
+    obs = obs_status
   )
 
 write_rds(fact_wages, file.path(clean_dir, "fact_wages.rds"))
@@ -196,7 +206,8 @@ fact_employment <- employment %>%
     sex,
     econ_activity = classif1,
     sector = classif2,
-    value = obs_value
+    value = obs_value,
+    obs = obs_status
   )
 
 write_rds(fact_employment, file.path(clean_dir, "fact_employment.rds"))

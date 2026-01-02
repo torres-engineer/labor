@@ -216,6 +216,93 @@ df_indicator <- list.files(
 
 dbWriteTable(con, "dim_indicator", df_indicator, overwrite = TRUE)
 
+df_obs <- list.files(
+  clean_dir,
+  pattern = "dim_obs_status.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(read_rds) %>%
+  bind_rows() %>%
+  distinct() %>%
+  dplyr::filter(!is.na(code)) %>%
+  transmute(
+    id = row_number(),
+    code = as.character(code),
+    label = as.character(label),
+  )
+
+dbWriteTable(con, "dim_obs_status", df_obs, overwrite = TRUE)
+
+df_sex <- list.files(
+  clean_dir,
+  pattern = "dim_sex.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(read_rds) %>%
+  bind_rows() %>%
+  distinct() %>%
+  transmute(
+    id = row_number(),
+    code = as.character(code),
+    name = as.character(name),
+  )
+
+dbWriteTable(con, "dim_sex", df_sex, overwrite = TRUE)
+
+df_econ <- list.files(
+  clean_dir,
+  pattern = "dim_econ_activity.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(read_rds) %>%
+  bind_rows() %>%
+  distinct() %>%
+  transmute(
+    id = row_number(),
+    code = as.character(code),
+    scheme = as.character(scheme),
+    name = as.character(name),
+  )
+
+dbWriteTable(con, "dim_econ_activity", df_econ, overwrite = TRUE)
+
+df_sector <- list.files(
+  clean_dir,
+  pattern = "dim_sector.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(read_rds) %>%
+  bind_rows() %>%
+  distinct() %>%
+  transmute(
+    id = row_number(),
+    code = as.character(code),
+    name = as.character(name),
+  )
+
+dbWriteTable(con, "dim_sector", df_sector, overwrite = TRUE)
+
+df_currency <- list.files(
+  clean_dir,
+  pattern = "dim_currency.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(read_rds) %>%
+  bind_rows() %>%
+  distinct() %>%
+  transmute(
+    id = row_number(),
+    code = as.character(code),
+    label = as.character(label),
+  )
+
+dbWriteTable(con, "dim_currency", df_currency, overwrite = TRUE)
+
 df <- list.files(
   clean_dir,
   pattern = "fact_macroecon.rds$",
@@ -259,8 +346,147 @@ df <- list.files(
     by = c("geo" = "code_ilo"),
   ) %>%
   mutate(geo = coalesce(geo_id_wb, geo_id_ilo)) %>%
-  select(geo, date, indicator, value)
+  left_join(
+    df_obs %>% select(obs_id = id, code),
+    by = c("obs" = "code"),
+  ) %>%
+  mutate(obs = obs_id) %>%
+  select(geo, date, indicator, value, obs)
 
 dbWriteTable(con, "fact_macroecon", df, overwrite = TRUE)
+
+df <- list.files(
+  clean_dir,
+  pattern = "fact_employment.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(function(file) {
+    dat <- read_rds(file)
+    dat$date <- as.integer(dat$date)
+    dat
+  }) %>%
+  bind_rows() %>%
+  distinct() %>%
+  left_join(
+    df_date %>% select(date_id = id, year),
+    by = c("date" = "year")
+  ) %>%
+  mutate(date = date_id) %>%
+  separate(
+    indicator,
+    into = c("indicator_code", "source_code"),
+    sep = " \\| ",
+    fill = "right",
+    extra = "drop"
+  ) %>%
+  mutate(source_code = coalesce(source_code, NA_character_)) %>%
+  left_join(
+    df_source %>% select(source_id = id, code),
+    by = c("source_code" = "code")
+  ) %>%
+  left_join(
+    df_indicator %>% select(indicator = id, code, source),
+    by = c("indicator_code" = "code", "source_id" = "source")
+  ) %>%
+  left_join(
+    df_geo %>% select(geo_id_wb = id, code_wb),
+    by = c("geo" = "code_wb")
+  ) %>%
+  left_join(
+    df_geo %>% select(geo_id_ilo = id, code_ilo),
+    by = c("geo" = "code_ilo"),
+  ) %>%
+  mutate(geo = coalesce(geo_id_wb, geo_id_ilo)) %>%
+  left_join(
+    df_obs %>% select(obs_id = id, code),
+    by = c("obs" = "code"),
+  ) %>%
+  mutate(obs = obs_id) %>%
+  left_join(
+    df_sex %>% select(sex_id = id, code),
+    by = c("sex" = "code"),
+  ) %>%
+  mutate(sex = sex_id) %>%
+  left_join(
+    df_econ %>% select(econ_id = id, code),
+    by = c("econ_activity" = "code"),
+  ) %>%
+  mutate(econ_activity = econ_id) %>%
+  left_join(
+    df_sector %>% select(sector_id = id, code),
+    by = c("sector" = "code"),
+  ) %>%
+  mutate(sector = sector_id) %>%
+  select(geo, date, indicator, sex, econ_activity, sector, value, obs)
+
+dbWriteTable(con, "fact_employment", df, overwrite = TRUE)
+
+df <- list.files(
+  clean_dir,
+  pattern = "fact_wages.rds$",
+  full.names = TRUE,
+  recursive = TRUE,
+) %>%
+  lapply(function(file) {
+    dat <- read_rds(file)
+    dat$date <- as.integer(dat$date)
+    dat
+  }) %>%
+  bind_rows() %>%
+  distinct() %>%
+  left_join(
+    df_date %>% select(date_id = id, year),
+    by = c("date" = "year")
+  ) %>%
+  mutate(date = date_id) %>%
+  separate(
+    indicator,
+    into = c("indicator_code", "source_code"),
+    sep = " \\| ",
+    fill = "right",
+    extra = "drop"
+  ) %>%
+  mutate(source_code = coalesce(source_code, NA_character_)) %>%
+  left_join(
+    df_source %>% select(source_id = id, code),
+    by = c("source_code" = "code")
+  ) %>%
+  left_join(
+    df_indicator %>% select(indicator = id, code, source),
+    by = c("indicator_code" = "code", "source_id" = "source")
+  ) %>%
+  left_join(
+    df_geo %>% select(geo_id_wb = id, code_wb),
+    by = c("geo" = "code_wb")
+  ) %>%
+  left_join(
+    df_geo %>% select(geo_id_ilo = id, code_ilo),
+    by = c("geo" = "code_ilo"),
+  ) %>%
+  mutate(geo = coalesce(geo_id_wb, geo_id_ilo)) %>%
+  left_join(
+    df_obs %>% select(obs_id = id, code),
+    by = c("obs" = "code"),
+  ) %>%
+  mutate(obs = obs_id) %>%
+  left_join(
+    df_sex %>% select(sex_id = id, code),
+    by = c("sex" = "code"),
+  ) %>%
+  mutate(sex = sex_id) %>%
+  left_join(
+    df_econ %>% select(econ_id = id, code),
+    by = c("econ_activity" = "code"),
+  ) %>%
+  mutate(econ_activity = econ_id) %>%
+  left_join(
+    df_currency %>% select(currency_id = id, code),
+    by = c("currency" = "code"),
+  ) %>%
+  mutate(currency = currency_id) %>%
+  select(geo, date, indicator, sex, econ_activity, currency, value, obs)
+
+dbWriteTable(con, "fact_wages", df, overwrite = TRUE)
 
 dbDisconnect(con, shutdown = TRUE)

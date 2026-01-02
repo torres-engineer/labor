@@ -5,7 +5,6 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(purrr)
-library(WikidataQueryServiceR)
 
 raw_dir <- "data/raw/worldbank"
 clean_dir <- "data/cleaned/worldbank"
@@ -85,8 +84,7 @@ dim_indicators_raw <- map_dfr(
 dim_source <- dim_indicators_raw %>%
   rename(name = SOURCE_ORGANIZATION) %>%
   distinct(name, .keep_all = TRUE) %>%
-  mutate(id = row_number()) %>%
-  select(id, name)
+  select(name)
 
 write_rds(dim_source, file.path(clean_dir, "dim_source.rds"))
 write_csv(dim_source, file.path(clean_dir, "dim_source.csv"))
@@ -127,11 +125,11 @@ dim_indicator <- dim_indicators_raw %>%
   ) %>%
   left_join(indicator_domains, by = "code") %>%
   left_join(
-    dim_source %>% select(name, id),
+    dim_source %>% transmute(name, source_name = name),
     by = c("source_name" = "name")
   ) %>%
-  rename(source = id) %>%
-  select(code, name, domain, unit, measure_type, source)
+  mutate(source_code = NA_character_) %>%
+  select(code, name, domain, unit, measure_type, source_code, source_name)
 
 write_rds(dim_indicator, file.path(clean_dir, "dim_indicator.rds"))
 write_csv(dim_indicator, file.path(clean_dir, "dim_indicator.csv"))
@@ -169,16 +167,3 @@ fact_macroecon <- map_dfr(
 
 write_rds(fact_macroecon, file.path(clean_dir, "fact_macroecon.rds"))
 write_csv(fact_macroecon, file.path(clean_dir, "fact_macroecon.csv"))
-
-wikidata_query <- '
-SELECT ?country ?countryLabel ?iso2 ?iso3 WHERE {
-  ?country wdt:P297 ?iso2 .
-  OPTIONAL { ?country wdt:P298 ?iso3 }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul". }
-}
-'
-
-geo_wikidata_map <- query_wikidata(wikidata_query)
-
-write_rds(geo_wikidata_map, file.path(clean_dir, "geo_wikidata_map.rds"))
-write_csv(geo_wikidata_map, file.path(clean_dir, "geo_wikidata_map.csv"))

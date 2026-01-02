@@ -1,0 +1,1 @@
+EXPORT DATABASE 'data/db' (COMPRESSION zstd);

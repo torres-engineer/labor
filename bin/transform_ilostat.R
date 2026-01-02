@@ -79,7 +79,10 @@ dim_indicator <- bind_rows(
   macro %>% select(indicator, indicator_label, source)
 ) %>%
   distinct() %>%
-  left_join(dim_source, by = c("source" = "code")) %>%
+  left_join(
+    dim_source %>% mutate(source_label = name),
+    by = c("source" = "code")
+  ) %>%
   mutate(
     domain = case_when(
       str_detect(indicator, "SDG") ~ "labour share",
@@ -97,7 +100,8 @@ dim_indicator <- bind_rows(
       str_detect(indicator, "EMP") ~ "additive",
     ),
     source_id = id,
-    source_code = source
+    source_code = source,
+    source_name = source_label
   ) %>%
   mutate(id = row_number()) %>%
   select(
@@ -107,8 +111,8 @@ dim_indicator <- bind_rows(
     domain,
     unit,
     measure_type,
-    source = source_id,
-    source_code
+    source_code,
+    source_name
   )
 
 write_rds(dim_indicator, file.path(clean_dir, "dim_indicator.rds"))

@@ -28,12 +28,13 @@ $(CLEAN_DIR)/%/.transformed: $(RAW_DIR)/%/.extracted
 	@touch $@
 
 LOAD_OUTPUT = $(DATA_DIR)/data.duckdb
+LOAD_SCRIPT = $(BIN_DIR)/load.R
 
 load: $(LOAD_OUTPUT)
 
-$(LOAD_OUTPUT): transform $(BIN_DIR)/load.sh
+$(LOAD_OUTPUT): transform $(LOAD_SCRIPT)
 	@echo "Loading..."
-	$(BIN_DIR)/load.sh $(INTEGRATE_OUTPUT) $(LOAD_OUTPUT)
+	$(LOAD_SCRIPT)
 
 ARCHIVE_DIR = archives
 COMPRESSOR ?= xz
@@ -48,20 +49,17 @@ EXT_gzip = gz
 TAR_FLAGS = $(TAR_FLAGS_$(COMPRESSOR))
 EXT       = $(EXT_$(COMPRESSOR))
 ARCHIVE_FILE = $(ARCHIVE_DIR)/data_backup.$(EXT)
-
-$(ARCHIVE_DIR)/.data_ready: load
-	@touch $@
+EXPORT_SQL = sql/export.sql
 
 archive: $(ARCHIVE_FILE)
 
-$(ARCHIVE_FILE): $(ARCHIVE_DIR)/.data_ready | $(ARCHIVE_DIR)
+$(ARCHIVE_FILE): load
 	@echo "Creating archive $@"
+	duckdb $(LOAD_OUTPUT) < $(EXPORT_SQL)
+	mkdir -p $(ARCHIVE_DIR)
 	tar $(TAR_FLAGS) $@ -C $(DATA_DIR) .
 
-$(ARCHIVE_DIR):
-	mkdir -p $@
-
-all: load archive
+all: archive
 
 clean:
 	rm -rf $(RAW_DIR) $(CLEAN_DIR) $(INTEGRATED_DIR)

@@ -31,6 +31,7 @@ fetch_zip() {
 # GDP, PPP (constant 2021 international $)
 # GDP (constant 2015 US$)
 # GDP (constant LCU)
+# GDP per person employed (constant 2021 PPP $)
 # Gini index
 # Foreign direct investment, net inflows (BoP, current US$)
 # Foreign direct investment, net outflows (BoP, current US$)
@@ -38,6 +39,7 @@ INDICATORS="
 NY.GDP.MKTP.PP.KD
 NY.GDP.MKTP.KD
 NY.GDP.MKTP.KN
+SL.GDP.PCAP.EM.KD
 SI.POV.GINI
 BX.KLT.DINV.CD.WD
 BM.KLT.DINV.CD.WD

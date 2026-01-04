@@ -94,20 +94,23 @@ indicator_domains <- tibble(
     "NY.GDP.MKTP.PP.KD",
     "NY.GDP.MKTP.KD",
     "NY.GDP.MKTP.KN",
+    "SL.GDP.PCAP.EM.KD",
     "BM.KLT.DINV.CD.WD",
     "BX.KLT.DINV.CD.WD",
     "SI.POV.GINI"
   ),
-  domain = c("GDP", "GDP", "GDP", "FDI", "FDI", "Gini"),
+  domain = c("GDP", "GDP", "GDP", "GDP", "FDI", "FDI", "Gini"),
   unit = c(
     "constant 2021 international $",
     "constant 2015 US$",
     "constant LCU",
+    "constant 2021 PPP $",
     "BoP, current US$",
     "BoP, current US$",
     "index"
   ),
   measure_type = c(
+    "additive",
     "additive",
     "additive",
     "additive",

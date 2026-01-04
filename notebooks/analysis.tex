@@ -1,0 +1,328 @@
+A fase de análise inicial baseou-se num conjunto de dados
+desnormalizado; a reformulação subsequente implementou um \emph{data
+warehouse} multidimensional que permitiu a análise OLAP e a agregação
+teoricamente fundamentada.
+
+A análise apresentada abaixo põe isso mesmo em prática.
+
+\subsubsection{\texorpdfstring{Evolução global do \emph{labour
+share}}{Evolução global do labour share}}\label{evoluuxe7uxe3o-global-do-labour-share}
+
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.0347}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1389}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1528}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1806}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1875}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.0972}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.0764}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1319}}@{}}
+\caption{Visão geral do labour share por região (2004--2025, a cada 5
+anos).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+year
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+East Asia \& Pacific
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Europe \& Central Asia
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Latin America \& Caribbean
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Middle East \& North Africa
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+North America
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+South Asia
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Sub-Saharan Africa
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+year
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+East Asia \& Pacific
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Europe \& Central Asia
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Latin America \& Caribbean
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Middle East \& North Africa
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+North America
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+South Asia
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Sub-Saharan Africa
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2005 & 46.50462 & 51.90579 & 49.01374 & 34.62096 & 60.1775 & 47.44467 &
+40.85213 \\
+2010 & 46.75659 & 52.33425 & 49.57748 & 35.97861 & 59.7805 & 47.64883 &
+40.73968 \\
+2015 & 47.33338 & 51.57227 & 50.22565 & 41.33578 & 60.1975 & 46.72233 &
+41.89534 \\
+2020 & 47.96679 & 53.50062 & 49.95961 & 42.23030 & 60.4700 & 47.87667 &
+41.81283 \\
+2025 & 46.35841 & 52.11966 & 48.34071 & 38.25619 & 58.0670 & 45.85650 &
+41.82416 \\
+\end{longtable}
+
+Conseguimos ver como os ``países de velho mundo'' são os únicos com um
+\emph{labour share} acima dos 50\%. A nível global, isso não se
+verifica. Embora que consiguamos registar um declínio da parte da
+América do Norte de \(61\%\) em 2004, para \(58\%\) em 2025. A maioria
+das regiões mostra certa estabilidade no valor (o que não significa ser
+algo bom), tirando a América do Norte (com o declínio já mencionado), e
+o Médio Oriente e Norte da África. O Médio Oriente e Norte da África,
+Para além de terem o pior \emph{labour share} registado em (quase) todos
+os anos (\(34\%\)--\(42\%\)), é bastante desregulado. Começou a subir
+perto de 2007--2008, quanto teve a
+\href{https://pt.wikipedia.org/wiki/Crise_financeira_de_2007\%E2\%80\%932008}{crise
+global}. São países com grandes riquezas petrolíferas, e que quando o
+preço do ``ouro negro'' subiu, o mesmo não se verificou na carteira dos
+trabalhadores. A
+\href{https://pt.wikipedia.org/wiki/Primavera_\%C3\%81rabe}{Primavera
+Árabe} ocorreu após essa crise, e é provável que, para acalmar as
+revoltas, os governos criaram reformas que aumentassem o \emph{labour
+share} de certa forma. Também é possível notar o aumento a nível global
+no ano 2020, com o evento do ínicio pandemia do
+\href{https://pt.wikipedia.org/wiki/Coronav\%C3\%ADrus_da_s\%C3\%ADndrome_respirat\%C3\%B3ria_aguda_grave_2}{SARS-CoV-2}.
+
+\includegraphics[width=1\linewidth]{analysis_files/figure-latex/labour-share-plot-1}
+
+Uma coisa é certa, com um \emph{labour share} a nível global de cerca de
+\(48\%\), e regiões onde o valor é \(10\%\) acima ou abaixo desse valor,
+com tendências descendentes nas regiões de ambos os casos. Existe
+claramente uma desigualdade regional, com os trabalhadores do norte
+global a ganhar uma maior parte da riqueza que a sua região gera. Apesar
+de declínios a nível regional, existe uma certa estabilidade global.
+
+\pandocbounded{\includegraphics[keepaspectratio]{analysis_files/figure-latex/labour-share-heatmap-1.pdf}}
+
+O \emph{heatmap} claramente destaca os mínimos das regiões do Médio
+Oriente e Norte da África/Subsaariana em comparação com os máximos da
+América do Norte.
+
+\subsubsection{Comparação entre centro e
+periferia}\label{comparauxe7uxe3o-entre-centro-e-periferia}
+
+Conseguimos ver claramente uma diferença enorme entre os países com
+maior rendimento e aqueles com menor rendimento. Existe uma diferença
+maior que \(10\%\) sobre o \emph{labour share}. Os países de renda médio
+alta e de renda médio baixa estão quase na mesma situação, e acima da
+média dos extremos normalmente, com os países de renda média baixa a
+passar para baixo nos últimos anos. Conseguimos reparar que os de renda
+média baixa já tiveram em média maior \emph{labour share} que os de
+renda médio alta até 2012. Mas também é de lembrar que talvez, os países
+que hoje estão categorizados como sendo de renda média alta, antes de
+2010 era de renda média baixa, e vice-versa, como já foi notado
+anteriormente.
+
+\includegraphics[width=1\linewidth]{analysis_files/figure-latex/dependency-theory-1}
+
+Uma possível forma de demonstrar a
+\href{https://pt.wikipedia.org/wiki/Teoria_da_depend\%C3\%AAncia}{teoria
+da dependência} mostrando diferenças persistentes no labour share entre
+economias centrais (alta renda) e periféricas (baixa renda), destacando
+a dinâmica da exploração.
+
+Os países centrais de rendimentos altos mantêm cerca de \(50\%\) do
+labour share, enquanto os países periféricos de baixo rendimento
+estagnam em cerca de \(38\%\), criando uma diferença estrutural de um
+pouco mais de \(10\%\) que visualiza o mecanismo de ``dependência'' e
+extração central da teoria da dependência.
+
+\subsubsection{\texorpdfstring{Produtividade \emph{versus} \emph{labour
+share}}{Produtividade versus labour share}}\label{produtividade-versus-labour-share}
+
+Agora, vamos tentar mostrar uma contradição entre estas duas coisas:
+
+\begin{itemize}
+\tightlist
+\item
+  Produtividade (produção por trabalhador) --- medida em PIB por
+  trabalhador (paridade do poder de compra em dólares), reflete o
+  aumento da capacidade técnica da mão de obra e os ganhos de eficiência
+  dentro do capitalismo. Isto captura diretamente a produção por
+  trabalhador, tornando-o ideal para revelar a contradição entre o
+  aumento da produtividade e a estagnação do \emph{labour share}. Como
+  se concentra apenas nos trabalhadores empregados, evita distorções de
+  fatores demográficos, como taxas de fertilidade ou reformados. O
+  ajuste à paridade do poder de compra (PPC) garante a comparabilidade
+  entre as diferentes regiões do globo;
+\item
+  Labor income share --- que representa a parte da riqueza efetivamente
+  capturada pelos trabalhadores.
+\end{itemize}
+
+A produtividade tende a aumentar devido à inovação, mas \emph{labour
+share} muitas vezes estagna ou diminui --- o que significa que o capital
+captura mais da mais-valia.
+
+A análise seguinte deve ajudar a tornar explícito esta contradição: os
+trabalhadores aumentam cada vez mais a produtividade, enquanto a sua
+reivindicação coletiva sobre o lucro (representado pelo \emph{labour
+share}) é mediada e limitada pelo controlo do capital sobre a produção.
+
+\includegraphics[width=1\linewidth]{analysis_files/figure-latex/productivity-labour-share-1}
+
+Na maioria das regiões (excluindo o Médio Oriente e o Norte de África
+até a altura do COVID), a produtividade só têm aumentado a nível global.
+Enquanto isso, temos o \emph{labour share} basicamente estagnado.
+
+\pandocbounded{\includegraphics[keepaspectratio]{analysis_files/figure-latex/mena-outlier-1.pdf}}
+
+Se a relação fosse negativa ou estável, tornava explícito: à medida que
+a produtividade cresce, a reivindicação dos trabalhadores não cresce.
+
+Porém, afinal vemos que os ganhos de produtividade traduzem-se
+parcialmente no \emph{labour share}, \textbf{mas apenas a nível global}.
+E isso fica bem claro quando olhamos para a exceção: a região do Médio
+Oriente e Norte de África, onde os rendimentos do petróleo, por estarem
+sob controlo autoritário dos líderes da região, são eles que ficam com o
+mais da mais-valia. A produtividade têm aumentado também, porém os
+trabalhadores recebem cerca de \(35\%\)--\(40\%\), enquanto o capita
+acumula mais de 60\%. O que isto mostra talvez na realidade é que esta é
+a única região em que os capitalistas não aumentam, nem que ligeiramente
+os salários, para manter os trabalhadores calmos, ao mesmo nível que do
+resto do mundo. São dois modelos de extração do lucro diferentes: a
+gerida e a descarada.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.3913}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1594}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1449}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1449}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1594}}@{}}
+\caption{Visão geral do labour share por região (2004--2025, a cada 5
+anos).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+region
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+slope
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+std.error
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p.value
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+statistic
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+region
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+slope
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+std.error
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p.value
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+statistic
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+South Asia & -0.0001262 & 0.0000310 & 0.0006620 & -4.0639675 \\
+Sub-Saharan Africa & 0.0003493 & 0.0001454 & 0.0267061 & 2.4017787 \\
+East Asia \& Pacific & -0.0000148 & 0.0000271 & 0.5912831 &
+-0.5462030 \\
+Middle East \& North Africa & -0.0006366 & 0.0000808 & 0.0000002 &
+-7.8815888 \\
+North America & -0.0001202 & 0.0000219 & 0.0000264 & -5.4987752 \\
+Latin America \& Caribbean & -0.0000871 & 0.0000758 & 0.2652746 &
+-1.1478594 \\
+Europe \& Central Asia & -0.0000191 & 0.0000225 & 0.4047215 &
+-0.8521926 \\
+\end{longtable}
+
+Quando olhamos \textbf{a nível regional}, a contradição mostra-se
+correta (apenas a África Subsaariana contraria a tendência). A
+``inclinação positiva'' global era uma ilusão ótica ---
+\href{https://pt.wikipedia.org/wiki/Paradoxo_de_Simpson}{paradoxo de
+Simpson} --- resultante da média de todas as regiões, mas regionalmente,
+a tendência do capital é clara. Ao olharmos para o cenário globalmente,
+acabamos por cair na narrativa do capital, que ganhos de produtividade
+equivale a ganhos salariais. A análise regional expõe a mentira --- o
+\emph{labour share} está basicamente estagnado em todos os lugares.
+
+\includegraphics[width=1\linewidth]{analysis_files/figure-latex/unmasking-contradiction-1}
+
+A linha global demonstra a ilusão de ótica resultante da mistura de
+regiões alta produtividade com com baixa produtividade. O declínio do
+\emph{labour share} é uma característica estrutural do capitalismo em
+todo o mundo.
+
+Vamos normalizar a produtividade numa distribuição normal para uma
+última visualização.
+
+\pandocbounded{\includegraphics[keepaspectratio]{analysis_files/figure-latex/focus-on-labour-share-1.pdf}}
+
+\subsubsection{Investimento direto estrangeiro versus labour
+share}\label{investimento-direto-estrangeiro-versus-labour-share}
+
+Como os fluxos do IDE podem assumir valores negativos, aplicamos uma
+transformação logarítmica com sinal, preservando tanto a magnitude como
+a direção dos fluxos de capital, ao mesmo tempo que reduzimos a
+assimetria.
+
+Sem o uso da desta transformação, neste caso com a função logaritmica,
+estariamos a juntar fluxos enormes com fluxos mais pequenos. Desta forma
+os valores maiores ficam comprimidos, diminuindo a variação, continuam a
+mostrar a sua dimensão, ao mesmo tempo que diminuimos os possíveis
+\emph{outliers} que poderiam dificultar a análise do coeficiente de
+correlação Pearson.
+
+A transformação logarítmica com sinal preserva a direção do fluxo, ao
+mesmo tempo que controla os valores monstruosos.
+
+A correlação de Pearson usa a covariância que mede a direção do
+movimento conjunto deste caso da média dos fluxos do IDE com a média do
+\emph{labour share}, ao longo do tempo, e divide pela multipicação do
+desvio padrão dos dois. O desvio padrão mede o quão dispersos estão os
+dados em torno da sua média. Se estiverem muito dispersos, o valor é
+maior, e isso vai então diminuir o valor do coeficiente de correlação.
+No final, o coeficiente é um valor normalizado entre \(-1\) e \(1\). Se
+o valor fôr \(0\), não existe correlação. Se fôr \(1\), existe uma
+correlação prefeita onde um valor cresce juntamente com o outro, que é o
+caso oposto de se o coeficiente fôr \(-1\), também uma correlação
+prefeita, mas um dos valor desce quando o outro sobe.
+
+Para a esta correlação entre os fluxos IDE e o \emph{labour share}, o
+coeficiente \(< 0\) significa ``mais extração, menos \emph{labour
+share}'' --- sinal imperialista fundamental.
+
+Esta visualização destaca correlações negativas no Sul Global (América
+Latina, Caraíbas, Médio Oriente e Norte de África) como evidência da
+destruição salarial através da extração imperialistas, enquanto
+correlações positivas em outros lugares expõem a colaboração entre
+burguesias.
+
+\pandocbounded{\includegraphics[keepaspectratio]{analysis_files/figure-latex/correlation-1.pdf}}
+
+As correlações negativas na América Latina (\(-4,1\%\)) e na região
+Médio Oriente e Norte de África (\(-10,4\%\)) dão força à tese de que os
+fluxos IDE não representam ``desenvolvimento'', mas sim a extração de
+valor dos trabalhadores para os centros imperialistas. O Leste Asiático
+e o Pacífico apresentam a correlação positiva mais forte entre fluxos
+IDE e \emph{labour share} (Ásia Oriental \(+17,7\%\)), sugerindo
+resistência dos trabalhadores ou dinâmicas alternativas de capital como
+alianças capitalistas estatais. A correlação positiva da Ásia Oriental
+prova que a autogestão dos trabalhadores pode capturar/reverter os
+fluxos imperialistas.
+
+Os valores do coeficiente de correlação, podem não parecer
+suficientemente fortes, até as regiões destacadas têm valores fracos.
+Mas esta é uma análise empírica. As fracas correlações não negam a
+extração imperialista. Correlações fracas são consistentes com um
+sistema no qual a extração de excedentes está estruturalmente
+incorporada.

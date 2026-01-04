@@ -14,13 +14,27 @@ UML_PUML=$(wildcard $(UMLDIR)/*.puml)
 UML_PDFS=$(UML_PUML:.puml=.pdf)
 UML_EPS=$(UML_PUML:.puml=.eps)
 
-.PHONY: all pdf ps clean veryclean watch uml
+NOTEBOOKSDIR=../notebooks
+RMD=$(NOTEBOOKSDIR)/analysis.Rmd
+ANALYSIS_TEX=$(NOTEBOOKSDIR)/analysis.tex
+
+.PHONY: all analysis pdf ps clean veryclean watch uml
 
 all: pdf
 
+analysis: $(ANALYSIS_TEX)
+
+$(ANALYSIS_TEX): $(RMD)
+	@echo ">>> Rendering RMarkdown analysis..."
+	Rscript -e "rmarkdown::render('$(RMD)', output_format='pdf_document')"
+	Rscript -e "rmarkdown::render('$(RMD)', output_format='latex_fragment')"
+	ln -sf $(NOTEBOOKSDIR)/analysis_files analysis_files
+	@# Convert the produced .tex into a standalone fragment if needed
+	@# rmarkdown places output in notebooks/, so we're good.
+
 pdf: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex bibliography.bib uml
+$(MAIN).pdf: $(MAIN).tex bibliography.bib analysis uml
 	@echo ">>> Building PDF using latexmk (XeLaTeX + biber)..."
 	$(LATEXMK) $(LATEXMKFLAGS) $(MAIN).tex
 	@echo ">>> PDF ready: $(MAIN).pdf"

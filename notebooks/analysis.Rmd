@@ -1,0 +1,703 @@
+---
+title: "Labor"
+author: "João Torres"
+date: "2025-12-06"
+bibliography: ../docs/bibliography.bib
+link-citations: TRUE
+header-includes:
+  - \usepackage{graphicx}
+  - \usepackage{booktabs}
+  - \usepackage{amsmath}
+  - \usepackage{longtable}
+  - \setcounter{secnumdepth}{3}
+  - \setcounter{tocdepth}{3}
+---
+
+A fase de análise inicial baseou-se num conjunto de dados desnormalizado; a
+reformulação subsequente implementou um _data warehouse_ multidimensional que
+permitiu a análise OLAP e a agregação teoricamente fundamentada.
+
+A análise apresentada abaixo põe isso mesmo em prática.
+
+```{r, setup, include=FALSE}
+library(DBI)
+library(duckdb)
+library(conflicted)
+library(duckplyr)
+library(ggplot2)
+library(gganimate)
+library(tidyr)
+library(scales)
+library(glue)
+# library(ggraph)
+# library(igraph)
+library(broom)
+library(tidyverse)
+library(plm)
+library(scales)
+
+knitr::opts_chunk$set(connection = "db")
+```
+
+```{r, db, fig.cap="Criação de uma conexão à _data warehouse_.", include=FALSE}
+db <- dbConnect(duckdb(), "../data/data.duckdb", read_only = TRUE)
+```
+
+### Evolução global do _labour share_
+
+```{sql, output.var="df", include=FALSE}
+SELECT
+    d.year,
+    g.region,
+    AVG(f.value) AS avg_labor_share,
+    COUNT(*) AS n_obs
+  FROM fact_macroecon f
+  JOIN dim_indicator i ON f.indicator = i.id
+  JOIN dim_date d ON f.date = d.id
+  JOIN dim_geo g ON f.geo = g.id
+  WHERE i.code = 'SDG_1041_NOC_RT' AND g.region NOT NULL
+  GROUP BY d.year, g.region
+  ORDER BY d.year, g.region;
+```
+
+```{r, include=FALSE}
+df <- df %>%
+  dplyr::filter(!is.na(region))
+
+df_long <- df %>%
+  select(year, region, avg_labor_share) %>%
+  pivot_wider(names_from = region, values_from = avg_labor_share)
+
+min_year <- min(df$year, na.rm = TRUE)
+max_year <- max(df$year, na.rm = TRUE)
+step <- 5
+breaks <- seq(min_year %/% step * step + step, max_year, by = step)
+breaks <- seq(from = floor(min(df$year) / step) * step + step,
+              to = ceiling(max(df$year) / step) * step, by = step)
+```
+
+```{r, echo=FALSE}
+df %>%
+  dplyr::filter(year %in% breaks) %>%
+  select(year, region, avg_labor_share) %>%
+  pivot_wider(names_from = region, values_from = avg_labor_share) %>%
+  knitr::kable(
+    caption = paste(
+      "Visão geral do labour share por região",
+      glue("({min_year}–{max_year}, a cada {step} anos).")
+    ),
+    longtable = TRUE
+  )
+```
+
+Conseguimos ver como os "países de velho mundo" são os únicos com um _labour
+share_ acima dos 50%. A nível global, isso não se verifica. Embora que
+consiguamos registar um declínio da parte da América do Norte de $61\%$ em
+2004, para $58\%$ em 2025. A maioria das regiões mostra certa estabilidade no
+valor (o que não significa ser algo bom), tirando a América do Norte (com o
+declínio já mencionado), e o Médio Oriente e Norte da África. O Médio Oriente e
+Norte da África, Para além de terem o pior _labour share_ registado em (quase)
+todos os anos ($34\%$–$42\%$), é bastante desregulado. Começou a subir perto de
+2007–2008, quanto teve a [crise global](https://pt.wikipedia.org/wiki/Crise_financeira_de_2007%E2%80%932008).
+São países com grandes riquezas petrolíferas, e que quando o preço do "ouro
+negro" subiu, o mesmo não se verificou na carteira dos trabalhadores. A
+[Primavera Árabe](https://pt.wikipedia.org/wiki/Primavera_%C3%81rabe) ocorreu
+após essa crise, e é provável que, para acalmar as revoltas, os governos
+criaram reformas que aumentassem o _labour share_ de certa forma. Também é
+possível notar o aumento a nível global no ano 2020, com o evento do ínicio
+pandemia do [SARS-CoV-2](https://pt.wikipedia.org/wiki/Coronav%C3%ADrus_da_s%C3%ADndrome_respirat%C3%B3ria_aguda_grave_2).
+
+```{r, labour-share-plot, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+df_global <- df %>%
+  group_by(year) %>%
+  summarise(global_avg = mean(avg_labor_share), .groups = "drop")
+
+df_regions <- df %>% mutate(region = as.character(region))
+
+ggplot() +
+  geom_line(
+    data = df_regions,
+    aes(x = year, y = avg_labor_share, color = region, group = region),
+    linewidth = 1
+  ) +
+  geom_smooth(
+    data = df_regions,
+    aes(x = year, y = avg_labor_share, color = region, group = region),
+    method = "loess",
+    formula = y ~ x,
+    se = TRUE,
+  ) +
+  geom_line(
+    data = df_global,
+    aes(x = year, y = global_avg, color = "Global"),
+    linewidth = 0.5,
+    linetype = "dashed"
+  ) +
+  scale_x_continuous(breaks = breaks) +
+  scale_color_manual(
+    values = c(
+      "Global" = "black",
+      setNames(
+        rainbow(length(unique(df_regions$region))),
+        unique(df_regions$region)
+      )
+    )
+  ) +
+  labs(
+    title = paste0(
+      "Tendências Globais do labour share",
+      glue("({min_year}-{max_year})")
+    ),
+    subtitle = paste0(
+      "Intensificação da contradição entre capital e trabalho:",
+      "produção e apropriação de valor"
+    ),
+    x = "Ano",
+    y = "Labor income share médio como percentagem do PIB (%)"
+  ) +
+  theme_minimal() +
+  guides(color = guide_legend(
+    nrow = 3,
+    byrow = TRUE,
+  )) +
+  theme(legend.position = "bottom")
+```
+
+Uma coisa é certa, com um _labour share_ a nível global de cerca de $48\%$, e
+regiões onde o valor é $10\%$ acima ou abaixo desse valor, com tendências
+descendentes nas regiões de ambos os casos. Existe claramente uma desigualdade
+regional, com os trabalhadores do norte global a ganhar uma maior parte da
+riqueza que a sua região gera. Apesar de declínios a nível regional, existe uma
+certa estabilidade global.
+
+```{r, labour-share-heatmap, echo=FALSE}
+mutate(df, year = as.factor(year)) %>%
+  ggplot(aes(x = region, y = year, fill = avg_labor_share)) +
+  geom_tile() +
+  scale_fill_gradient2(
+    low = "red",
+    mid = "white",
+    high = "blue",
+    midpoint = 50,
+    name = "Labor income share\nmédio como\npercentagem do PIB (%)"
+  ) +
+  labs(title = "Desigualdade espacial no labour share ao longo do tempo") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title = element_blank()
+  )
+```
+
+O _heatmap_ claramente destaca os mínimos das regiões do Médio Oriente e Norte
+da África/Subsaariana em comparação com os máximos da América do Norte.
+
+
+### Comparação entre centro e periferia
+
+```{sql, output.var="df", include=FALSE}
+SELECT
+    d.year,
+    g.income_group,
+    AVG(f.value) AS avg_labor_share
+  FROM fact_macroecon f
+  JOIN dim_indicator i ON f.indicator = i.id
+  JOIN dim_date d ON f.date = d.id
+  JOIN dim_geo g ON f.geo = g.id
+  WHERE i.code = 'SDG_1041_NOC_RT' AND g.income_group IS NOT NULL
+  GROUP BY d.year, g.income_group
+  ORDER BY d.year;
+```
+
+```{r, include=FALSE}
+df$income_group <- factor(
+  df$income_group,
+  levels = c(
+    "High income",
+    "Upper middle income",
+    "Lower middle income",
+    "Low income"
+  )
+)
+
+df <- df %>%
+  group_by(year) %>%
+  mutate(gap = avg_labor_share[1] - avg_labor_share[4]) %>%
+  ungroup()
+```
+
+Conseguimos ver claramente uma diferença enorme entre os países com maior
+rendimento e aqueles com menor rendimento. Existe uma diferença maior que
+$10\%$ sobre o _labour share_. Os países de renda médio alta e de renda médio
+baixa estão quase na mesma situação, e acima da média dos extremos normalmente,
+com os países de renda média baixa a passar para baixo nos últimos anos.
+Conseguimos reparar que os de renda média baixa já tiveram em média maior
+_labour share_ que os de renda médio alta até 2012. Mas também é de lembrar que
+talvez, os países que hoje estão categorizados como sendo de renda média alta,
+antes de 2010 era de renda média baixa, e vice-versa, como já foi notado
+anteriormente.
+
+```{r, dependency-theory, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+df_gap <- df %>%
+  select(year, income_group, avg_labor_share) %>%
+  tidyr::pivot_wider(
+    names_from = income_group,
+    values_from = avg_labor_share
+  ) %>%
+  mutate(
+    ymin = `Low income`,
+    ymax = `High income`,
+  ) %>%
+  mutate(center = (ymax + ymin) / 2) %>%
+  select(year, ymin, ymax, center)
+
+ggplot(df, aes(x = year, y = avg_labor_share, color = income_group)) +
+  geom_line(linewidth = 1.2, alpha = 0.8) +
+  geom_ribbon(data = df_gap,
+              aes(x = year, ymin = ymin, ymax = ymax, fill = "Dependência"),
+              inherit.aes = FALSE, alpha = 0.3, color = NA) +
+  geom_line(data = df_gap,
+            aes(x = year, y = center),
+            color = "black", linewidth = 0.8, linetype = "dashed") +
+  labs(
+    title = "Divergência no labour share entre o centro e a periferia",
+    subtitle = "Extração persistente de lucro da periferia para o centro",
+    x = "Ano",
+    y = "Labor income share médio como percentagem do PIB (%)",
+    color = "Grupos de rendimentos",
+    fill = "Diferença"
+  ) +
+  scale_y_continuous(labels = percent_format(scale = 1, accuracy = 1)) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.text = element_text(size = 10, margin = margin(r = 0)),
+    legend.title = element_text(size = 11),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.spacing.x = unit(0.5, "char"),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+
+Uma possível forma de demonstrar a [teoria da dependência](https://pt.wikipedia.org/wiki/Teoria_da_depend%C3%AAncia)
+mostrando diferenças persistentes no labour share entre economias centrais
+(alta renda) e periféricas (baixa renda), destacando a dinâmica da exploração.
+
+Os países centrais de rendimentos altos mantêm cerca de $50\%$ do labour share,
+enquanto os países periféricos de baixo rendimento estagnam em cerca de $38\%$,
+criando uma diferença estrutural de um pouco mais de $10\%$ que visualiza o
+mecanismo de "dependência" e extração central da teoria da dependência.
+
+```{r, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+nodes <- data.frame(name = c("Core (High)", "Periphery (Low)"),
+                   labor_share = c(51, 39))
+edges <- data.frame(from = "Core (High)", to = "Periphery (Low)",
+                   surplus_transfer = 12, year = 2025)
+
+# ggraph(graph_from_data_frame(edges, vertices = nodes), layout = "star") +
+#   geom_edge_link(aes(width = surplus_transfer), color = "red", alpha = 0.7) +
+#   geom_node_point(aes(size = labor_share), color = "steelblue") +
+#   geom_node_text(aes(label = name), repel = TRUE)
+
+# network flow to show hypothetical surplus transfers
+#
+# This directly operationalizes Wallerstein's world-systems core-periphery model
+# using the df data, with the ribbon quantifying exploitative dependency central
+# to libertarian Marxist analysis.
+```
+
+### Produtividade _versus_ _labour share_
+
+```{sql, output.var="df", include=FALSE}
+WITH prod AS (
+    SELECT geo, date, value AS productivity
+    FROM fact_macroecon f
+    JOIN dim_indicator i ON f.indicator = i.id
+    WHERE i.code = 'SL.GDP.PCAP.EM.KD'
+  ),
+  ls AS (
+    SELECT geo, date, value AS labor_share
+    FROM fact_macroecon f
+    JOIN dim_indicator i ON f.indicator = i.id
+    WHERE i.code = 'SDG_1041_NOC_RT'
+  )
+  SELECT
+    d.year,
+    g.region,
+    AVG(prod.productivity) AS avg_productivity,
+    AVG(ls.labor_share) AS avg_labor_share
+  FROM prod
+  JOIN ls USING (geo, date)
+  JOIN dim_date d ON prod.date = d.id
+  JOIN dim_geo g ON prod.geo = g.id
+  GROUP BY d.year, g.region;
+```
+
+Agora, vamos tentar mostrar uma contradição entre estas duas coisas:
+
+- Produtividade (produção por trabalhador) — medida em PIB por trabalhador
+  (paridade do poder de compra em dólares), reflete o aumento da capacidade
+  técnica da mão de obra e os ganhos de eficiência dentro do capitalismo. Isto
+  captura diretamente a produção por trabalhador, tornando-o ideal para revelar
+  a contradição entre o aumento da produtividade e a estagnação do _labour
+  share_. Como se concentra apenas nos trabalhadores empregados, evita
+  distorções de fatores demográficos, como taxas de fertilidade ou reformados.
+  O ajuste à paridade do poder de compra (PPC) garante a comparabilidade entre
+  as diferentes regiões do globo;
+- Labor income share — que representa a parte da riqueza efetivamente capturada
+  pelos trabalhadores.
+
+A produtividade tende a aumentar devido à inovação, mas _labour share_ muitas
+vezes estagna ou diminui — o que significa que o capital captura mais da
+mais-valia.
+
+A análise seguinte deve ajudar a tornar explícito esta contradição: os
+trabalhadores aumentam cada vez mais a produtividade, enquanto a sua
+reivindicação coletiva sobre o lucro (representado pelo _labour share_) é
+mediada e limitada pelo controlo do capital sobre a produção.
+
+```{r, productivity-labour-share, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+df %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(
+    y = avg_productivity / 1000,
+    color = "Produtividade×1000 (PPC em dólares)"
+  )) +
+  geom_line(aes(
+    y = avg_labor_share,
+    color = "Labour income share médio como percentagem do PIB (%)"
+  )) +
+  facet_wrap(~ region, scales = "free_y") +
+  labs(
+    title = "Aumento da produtividade versus estagnação do labour share",
+    subtitle = paste0(
+      "Visualizando a contradição central do capitalismo:",
+      "produção coletiva, apropriação privada"
+    ),
+    x = "Ano",
+    y = "Valor"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.title = element_blank(),
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom",
+    legend.direction = "horizontal"
+  )
+```
+
+Na maioria das regiões (excluindo o Médio Oriente e o Norte de África até a
+altura do COVID), a produtividade só têm aumentado a nível global. Enquanto
+isso, temos o _labour share_ basicamente estagnado.
+
+```{r, mena-outlier, echo=FALSE}
+df_mena <- df %>% dplyr::filter(region == "Middle East & North Africa")
+
+ggplot() +
+  geom_point(
+    data = df,
+    aes(x = avg_productivity, y = avg_labor_share, color = region),
+    alpha = 0.7,
+    size = 2
+  ) +
+  geom_smooth(
+    data = df,
+    aes(x = avg_productivity, y = avg_labor_share),
+    method = "lm", formula = y ~ x, se = FALSE,
+    color = "blue", linewidth = 1.2) +
+  geom_smooth(
+    data = df_mena,
+    aes(x = avg_productivity, y = avg_labor_share),
+    method = "loess", formula = y ~ x, se = FALSE,
+    color = "red", linewidth = 1.2, linetype = "dashed") +
+  labs(
+    title = paste(
+      "Labour share:\n",
+      "a região do Médio Oriente e Norte de África\ndesafia a tendência global"
+    ),
+    x = "Produtividade média",
+    y = "Labour income share médio\ncomo percentagem do PIB (%)"
+  ) +
+  theme_minimal(base_size = 12) +
+  guides(color = guide_legend(
+    nrow = 4,
+    byrow = TRUE,
+  )) +
+  theme(legend.position = "bottom")
+```
+
+Se a relação fosse negativa ou estável, tornava explícito: à medida que a
+produtividade cresce, a reivindicação dos trabalhadores não cresce.
+
+Porém, afinal vemos que os ganhos de produtividade traduzem-se parcialmente no
+_labour share_, **mas apenas a nível global**. E isso fica bem claro quando
+olhamos para a exceção: a região do Médio Oriente e Norte de África, onde os
+rendimentos do petróleo, por estarem sob controlo autoritário dos líderes da
+região, são eles que ficam com o mais da mais-valia. A produtividade têm
+aumentado também, porém os trabalhadores recebem cerca de $35\%$–$40\%$,
+enquanto o capita acumula mais de 60%. O que isto mostra talvez na realidade é
+que esta é a única região em que os capitalistas não aumentam, nem que
+ligeiramente os salários, para manter os trabalhadores calmos, ao mesmo nível
+que do resto do mundo. São dois modelos de extração do lucro diferentes: a
+gerida e a descarada.
+
+```{r, global-illusion, echo=FALSE}
+df %>%
+  group_by(region) %>%
+  dplyr::filter(n() >= 3) %>%
+  nest(data = c(avg_productivity, avg_labor_share, year)) %>%
+  mutate(
+    model = map(data, ~ lm(avg_labor_share ~ avg_productivity, data = .x)),
+    tidy_model = map(model, broom::tidy)
+  ) %>%
+  select(-model) %>%
+  unnest(tidy_model) %>%
+  dplyr::filter(term == "avg_productivity") %>%
+  select(
+    region,
+    slope = estimate,
+    std.error = std.error,
+    p.value,
+    statistic
+  ) %>%
+  knitr::kable(
+    caption = paste(
+      "Visão geral do labour share por região",
+      glue("({min_year}–{max_year}, a cada {step} anos).")
+    ),
+    longtable = TRUE
+  )
+```
+
+Quando olhamos **a nível regional**, a contradição mostra-se correta (apenas a
+África Subsaariana contraria a tendência). A "inclinação positiva" global era
+uma ilusão ótica —
+[paradoxo de Simpson](https://pt.wikipedia.org/wiki/Paradoxo_de_Simpson) —
+resultante da média de todas as regiões, mas regionalmente, a tendência do
+capital é clara. Ao olharmos para o cenário globalmente, acabamos por cair na
+narrativa do capital, que ganhos de produtividade equivale a ganhos salariais.
+A análise regional expõe a mentira — o _labour share_ está basicamente
+estagnado em todos os lugares.
+
+```{r, unmasking-contradiction, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+df$region_group <- case_when(
+  df$region == "Europe & Central Asia" ~ "Europe",
+  df$region == "North America" ~ "North America",
+  TRUE ~ NA_character_
+)
+
+ggplot(df, aes(x = avg_productivity, y = avg_labor_share)) +
+  geom_smooth(
+    color = "grey50",
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  geom_point(aes(color = region_group), alpha = 0.7, size = 2) +
+  geom_smooth(
+    data = df[!is.na(df$region_group), ],
+    aes(color = region_group),
+    method = "loess",
+    formula = y ~ x,
+    se = FALSE,
+    linewidth = 1
+  ) +
+  annotate("text", x = 55000, y = 44,
+           label = "Ilusão Global (+)", color = "grey50", size = 4) +
+  annotate("text", x = 90000, y = 57,
+           label = "Realidade Regional (-)", color = "red", size = 4) +
+  theme_minimal()
+```
+
+A linha global demonstra a ilusão de ótica resultante da mistura de regiões
+alta produtividade com com baixa produtividade. O declínio do _labour share_ é
+uma característica estrutural do capitalismo em todo o mundo.
+
+Vamos normalizar a produtividade numa distribuição normal para uma última
+visualização.
+
+```{r, focus-on-labour-share, echo=FALSE}
+df_normalized <- df %>%
+  group_by(region) %>%
+  mutate(prod_z = scale(avg_productivity)[, 1]) %>%
+  ungroup()
+
+ggplot(df_normalized, aes(x = prod_z, y = avg_labor_share)) +
+  geom_smooth(color = "grey50", method = "lm", formula = y ~ x,
+              se = FALSE, linetype = "dashed", linewidth = 1.2) +
+  geom_point(aes(color = region), alpha = 0.7, size = 2.5) +
+  labs(
+    title = "Labour Share versus Produtividade normalizada",
+    subtitle = paste0(
+      "A produtividade normalizada",
+      "revela trajetórias puras da participação do trabalho"
+    ),
+    x = "Produtividade (normalizada por região)",
+    y = "Labor income share médio\ncomo percentagem do PIB (%)",
+    caption = paste0(
+      "Todas as regiões normalizadas com média 0, e desvio padrão 1.",
+      "Foca-te na tendência do labour share."
+    )
+  ) +
+  theme_minimal(base_size = 12) +
+  guides(color = guide_legend(
+    nrow = 4,
+    byrow = TRUE,
+  )) +
+  theme(legend.position = "bottom")
+```
+
+```{r, exploit, echo=FALSE}
+# exploit <- df %>%
+#   mutate(profit_share = 100 - avg_labor_share) %>%
+#   mutate(exploitation_rate = profit_share / avg_labor_share)
+#
+# ggplot(exploit, aes(year, exploitation_rate, color = region)) +
+#   geom_line() +
+#   labs(title = "Rate of Exploitation over Time")
+```
+
+### Investimento direto estrangeiro versus labour share
+
+Como os fluxos do IDE podem assumir valores negativos, aplicamos uma
+transformação logarítmica com sinal, preservando tanto a magnitude como a
+direção dos fluxos de capital, ao mesmo tempo que reduzimos a assimetria.
+
+Sem o uso da desta transformação, neste caso com a função logaritmica,
+estariamos a juntar fluxos enormes com fluxos mais pequenos. Desta forma os
+valores maiores ficam comprimidos, diminuindo a variação, continuam a mostrar a
+sua dimensão, ao mesmo tempo que diminuimos os possíveis _outliers_ que
+poderiam dificultar a análise do coeficiente de correlação Pearson.
+
+A transformação logarítmica com sinal preserva a direção do fluxo, ao mesmo
+tempo que controla os valores monstruosos.
+
+A correlação de Pearson usa a covariância que mede a direção do movimento
+conjunto deste caso da média dos fluxos do IDE com a média do _labour share_,
+ao longo do tempo, e divide pela multipicação do desvio padrão dos dois. O
+desvio padrão mede o quão dispersos estão os dados em torno da sua média. Se
+estiverem muito dispersos, o valor é maior, e isso vai então diminuir o valor
+do coeficiente de correlação. No final, o coeficiente é um valor  normalizado
+entre $-1$ e $1$. Se o valor fôr $0$, não existe correlação. Se fôr $1$, existe
+uma correlação prefeita onde um valor cresce juntamente com o outro, que é o
+caso oposto de se o coeficiente fôr $-1$, também uma correlação prefeita, mas
+um dos valor desce quando o outro sobe.
+
+Para a esta correlação entre os fluxos IDE e o _labour share_, o coeficiente
+$< 0$ significa "mais extração, menos _labour share_" — sinal imperialista
+fundamental.
+
+```{sql, output.var="df", include=FALSE}
+WITH fdi AS (
+  SELECT geo, date, value AS fdi
+  FROM fact_macroecon f
+  JOIN dim_indicator i ON f.indicator = i.id
+  WHERE i.code = 'BM.KLT.DINV.CD.WD'
+),
+ls AS (
+  SELECT geo, date, value AS labor_share
+  FROM fact_macroecon f
+  JOIN dim_indicator i ON f.indicator = i.id
+  WHERE i.code = 'SDG_1041_NOC_RT'
+)
+SELECT
+  g.region,
+  corr(
+    sign(fdi.fdi) * log(1 + abs(fdi.fdi)),
+    ls.labor_share
+  ) AS corr_fdi_ls,
+  count(*) AS n,
+  abs(corr(
+    sign(fdi.fdi) * log(1 + abs(fdi.fdi)),
+    ls.labor_share
+  )) * sqrt(count(*)) AS t_stat
+FROM fdi
+JOIN ls USING (geo, date)
+JOIN dim_geo g ON fdi.geo = g.id
+GROUP BY g.region;
+```
+
+```{r, include=FALSE}
+df_plot <- df %>%
+  mutate(
+    corr_label = scales::percent(corr_fdi_ls, accuracy = 0.1),
+    direction = ifelse(
+      corr_fdi_ls > 0,
+      "Worker Resistance",
+      "Imperial Extraction"
+    ),
+    strength = case_when(
+      abs(corr_fdi_ls) > 0.1 ~ "Strong",
+      abs(corr_fdi_ls) > 0.05 ~ "Moderate",
+      TRUE ~ "Weak"
+    ),
+  ) %>%
+  arrange(desc(corr_fdi_ls))
+```
+
+Esta visualização destaca correlações negativas no Sul Global (América Latina,
+Caraíbas, Médio Oriente e Norte de África) como evidência da destruição
+salarial através da extração imperialistas, enquanto correlações positivas em
+outros lugares expõem a colaboração entre burguesias.
+
+```{r, correlation, echo=FALSE}
+ggplot(
+  df_plot,
+  aes(x = reorder(region, corr_fdi_ls), y = corr_fdi_ls, fill = direction)
+  ) +
+  geom_col(width = 0.65, alpha = 0.85) +
+  geom_text(aes(y = 0.22, label = corr_label),
+            hjust = 0, size = 4.2, fontface = "bold", color = "white") +
+  scale_fill_manual(values = c("Worker Resistance" = "#D4A017",
+                              "Imperial Extraction" = "#8B0000")) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.01)) +
+  coord_flip(clip = "off") +
+  labs(
+    title = paste(
+      "Proxy de extração imperialista:\n",
+      "correlações entre fluxos IDE\ne labour share por região"
+    ),
+    x = "Regiões", y = "Coeficiente de correlação",
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(
+      size = 12,
+      color = "gray40",
+      hjust = 0.5,
+      lineheight = 1.3
+    ),
+    plot.caption = element_text(
+      size = 9,
+      color = "gray50",
+      hjust = 0.5,
+      lineheight = 1.2
+    ),
+    axis.text.y = element_text(size = 11, face = "bold", color = "gray20"),
+    axis.text.x = element_text(size = 11),
+    legend.position = "top",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(20, 40, 20, 20)
+  )
+```
+
+As correlações negativas na América Latina ($-4,1\%$) e na região Médio Oriente
+e Norte de África ($-10,4\%$) dão força à tese de que os fluxos IDE não
+representam "desenvolvimento", mas sim a extração de valor dos trabalhadores
+para os centros imperialistas. O Leste Asiático e o Pacífico apresentam a
+correlação positiva mais forte entre fluxos IDE e _labour share_ (Ásia Oriental
+$+17,7\%$), sugerindo resistência dos trabalhadores ou dinâmicas alternativas
+de capital como alianças capitalistas estatais. A correlação positiva da
+Ásia Oriental prova que a autogestão dos trabalhadores pode capturar/reverter
+os fluxos imperialistas.
+
+Os valores do coeficiente de correlação, podem não parecer suficientemente
+fortes, até as regiões destacadas têm valores fracos. Mas esta é uma análise
+empírica. As fracas correlações não negam a extração imperialista. Correlações
+fracas são consistentes com um sistema no qual a extração de excedentes está
+estruturalmente incorporada.

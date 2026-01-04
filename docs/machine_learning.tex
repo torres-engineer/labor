@@ -1,0 +1,476 @@
+\documentclass[12pt,a4paper,openright,oneside]{memoir}
+
+\usepackage{iftex}
+\ifXeTeX
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{EB Garamond}[
+  Scale = 1.0
+]
+\else
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\fi
+
+\usepackage{polyglossia}
+\setdefaultlanguage{portuguese}
+\setotherlanguage{english}
+
+\usepackage[a4paper,top=3cm,bottom=3cm,left=2cm,right=2cm]{geometry}
+
+\OnehalfSpacing
+
+\maxsecnumdepth{subsection}
+\setcounter{secnumdepth}{3}
+\setsecnumformat{\csname the#1\endcsname\quad}
+
+\chapterstyle{section}
+\renewcommand*{\chapnamefont}{\normalfont\Large\scshape}
+\renewcommand*{\chaptitlefont}{\normalfont\Huge\bfseries}
+
+\usepackage{caption}
+\DeclareCaptionLabelFormat{ipbeja}{#1~#2}
+\captionsetup{
+  labelfont=bf,
+  labelsep=none,
+  format=plain,
+  textfont=it,
+  justification=justified,
+  singlelinecheck=false,
+  labelformat=ipbeja
+}
+
+\captionsetup[table]{position=top}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{framed}
+\usepackage{calc}
+\usepackage{etoolbox}
+
+\usepackage{minted}
+\setminted{
+  linenos,
+  breaklines,
+  frame=lines,
+  fontsize=\small
+}
+
+\usepackage[style=apa, backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
+\usepackage{csquotes}
+
+\newcommand{\Institute}{Instituto Politécnico de Beja}
+\newcommand{\School}{Escola Superior de Tecnologia e Gestão}
+\newcommand{\Degree}{Licenciatura em Engenharia Informática}
+\newcommand{\Course}{Sistemas de Informação}
+\newcommand{\Title}{Exploração e Desigualdade Laboral Global através
+de Dados Abertos}
+\newcommand{\Subtitle}{\text{Data Mining / Machine Learning}}
+\newcommand{\Author}{João Augusto Costa Branco Marado Torres}
+\newcommand{\Advisor}{Dr.ª Isabel Sofia Sousa Brito}
+\newcommand{\JuryMemberFirst}{Dr. João Paulo Trindade}
+\newcommand{\JuryMemberSecond}{Dr.ª Elsa da Piedade Chinita Soares Rodrigues}
+\newcommand{\Date}{Beja, dezembro de 2025}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{hyperxmp}
+\hypersetup{
+  pdfauthor={\Author},
+  pdftitle={\Title},
+  pdflicenseurl={https://creativecommons.org/licenses/by-sa/4.0/},
+  pdfcopyright={© 2025 \Author --- CC BY-SA 4.0 for PDF, AGPL v3 for source},
+}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{center}
+  \includegraphics{Logotipo_IPBeja_horizontal-5/IPbeja_horizontal}
+
+  \bigskip
+
+  \textsc{\large \School}\\{\large \Degree}
+
+  \bigskip
+
+  \textsc{\large \Course}
+
+  \vspace{4\baselineskip}
+
+  \textsc{\Huge \Title}
+
+  \smallskip
+
+  {\Large \Subtitle}
+
+  \bigskip
+
+  {\large\bfseries \Author}
+
+  \vfill
+
+  \begin{center}
+    \includegraphics[height=25mm,keepaspectratio]{Logotipos_ESTIG/estig}%
+  \end{center}
+
+  \vfill
+
+  {\footnotesize \Date}
+\end{center}
+
+\cleardoublepage
+
+\thispagestyle{empty}
+\begin{center}
+  \textsc{\large \Institute}
+
+  \bigskip
+
+  \textsc{\large \School}\\{\large \Degree}
+
+  \bigskip
+
+  \textsc{\large \Course}
+
+  \vspace{4\baselineskip}
+
+  \textsc{\Huge \Title}
+
+  \smallskip
+
+  {\Large \Subtitle}
+
+  \bigskip
+
+  {\large\bfseries \Author}
+
+  \vspace{2\baselineskip}
+
+  {\large Trabalho realizado no âmbito da unidade curricular de \Course}
+
+  \vspace{2\baselineskip}
+
+  \textsc{Orientação}
+
+  \bigskip
+
+  \Advisor
+
+  \vfill
+
+  {\footnotesize \Date}
+\end{center}
+
+\cleardoublepage
+
+\thispagestyle{empty}
+\begin{center}
+  \textbf{Júri}
+
+  \bigskip
+
+  Responsável: \Advisor\\
+  Vogal: \JuryMemberFirst\\
+  Vogal: \JuryMemberSecond\\
+\end{center}
+\clearpage
+
+\pagenumbering{roman}
+% \fancyfoot[R]{\fontsize{8}{9}\selectfont\thepage}
+
+% \chapter*{Resumo}
+% \addcontentsline{toc}{chapter}{Resumo}
+% \noindent
+% ...
+%
+% \bigskip
+%
+% \textbf{Palavras-chave:} ...
+%
+% \chapter*{Abstract}
+% \addcontentsline{toc}{chapter}{Abstract}
+% \noindent
+% ...
+%
+% \bigskip
+%
+% \textbf{Keywords:} ...
+%
+% \chapter*{Dedicatória}
+% \addcontentsline{toc}{chapter}{Dedicatória}
+% \begin{flushright}
+%     ...
+% \end{flushright}
+%
+% \chapter*{Agradecimentos}
+% \addcontentsline{toc}{chapter}{Agradecimentos}
+% ...
+
+\clearpage
+\tableofcontents
+\clearpage
+% \listoffigures
+% \clearpage
+% \listoftables
+% \clearpage
+
+\chapter*{Lista de Abreviaturas e Siglas}
+\addcontentsline{toc}{chapter}{Lista de Abreviaturas e Siglas}
+\begin{description}
+  \item[ETL] \textit{Extract, Transform, Load}
+  \item[FAIR] \textit{Findable, Accessible, Interoperable, Reusable}
+  \item[FLOSS] \textit{Free \textit{Libre} and Open Source Software}
+  \item[FMI] Fundo Monetário Internacional
+  \item[GUI] \textit{Graphical User Interface}
+  \item[IED] Investimento Estrangeiro Direto
+  \item[ILO] \textit{International Labour Organization}
+  \item[OLAP] \textit{Online Analytical Processing}
+  \item[ONU] Organização das Nações Unidas
+  \item[PIB] Produto Interno Bruto
+  \item[POSIX] \textit{Portable Operating System Interface}
+  \item[PPC] Paridade do Poder de Compra
+  \item[URI] \textit{Uniform Resource Identifier}
+\end{description}
+
+% \chapter*{Simbologia e Notação}
+% \addcontentsline{toc}{chapter}{Simbologia e Notação}
+% \begin{description}
+%   \item[$x$] variável independente
+%   \item[$y$] variável dependente
+% \end{description}
+
+\clearpage
+\pagenumbering{arabic}
+% \fancyfoot[R]{\fontsize{8}{9}\selectfont\thepage}
+
+\chapter{Introdução}
+\label{ch:intro}
+
+A primeira fase deste projeto centrou-se na recolha, integração e
+modelação de dados abertos sobre trabalho, rendimento e condições
+económicas à escala global, Foi a construção de um \textit{data
+warehouse} multidimensional orientado para análise \textit{Online
+Analytical Processing} (OLAP). Esta infraestrutura constitui a base
+técnica necessária para análises sistemáticas e comparáveis entre
+países, regiões e períodos temporais, mitigando problemas comuns de
+fragmentação e inconsistência dos dados.
+
+Uma vez assegurada essa base, torna-se possível avançar para uma
+segunda etapa analítica, orientada não apenas para a descrição dos
+dados, mas para a identificação de padrões e relações estruturais. É
+neste contexto que técnicas de \textit{data mining} e \textit{machine
+learning} assumem relevância, ao permitir explorar grandes volumes de
+dados multidimensionais de forma sistemática, indo além da análise
+univariada ou de correlações simples.
+
+No domínio das ciências sociais, estas técnicas não devem ser
+entendidas como instrumentos de previsão determinista, mas como
+ferramentas exploratórias e analíticas que auxiliam a identificação
+de eventos recorrentes, assimetrias estruturais e relações complexas
+entre variáveis económicas e sociais, podendo elas contribuir para
+uma leitura empiríca das dinâmicas de desigualdade e exploração no
+capitalismo contemporâneo, se plicadas de forma crítica e
+acompanhadas de métricas de avaliação adequadas.
+
+Apesar da disponibilidade crescente de indicadores socioeconómicos, a
+análise das desigualdades laborais globais enfrenta desafios
+importantes. A existência de cada vez mais variáveis relevantes,
+países e regiões com realidades diferentes, entre outras coisas,
+dificultam a identificação de padrões estruturais através de
+abordagens analíticas tradicionais.
+
+O problema central desta fase do trabalho consiste, assim, em
+determinar de que forma técnicas de \textit{data mining} e
+\textit{machine learning} podem ser aplicadas a um \textit{data
+warehouse} multidimensional para identificar padrões relevantes nas
+relações entre produtividade, \textit{labour share}, dependência
+externa e desigualdades regionais. Coloca-se igualmente a questão de
+como avaliar empiricamente os resultados obtidos, garantindo que os
+modelos utilizados são interpretáveis, validados e metodologicamente
+justificados.
+
+\section{Objetivos}
+
+O objetivo geral desta segunda parte do projeto é aplicar técnicas de
+\textit{data mining} e \textit{machine learning} aos dados
+previamente integrados, de modo a identificar padrões estruturais e
+testar empiricamente hipóteses relacionadas com a desigualdade e a
+exploração do trabalho à escala global.
+
+De forma mais específica, pretende-se:
+\begin{itemize}
+  \item selecionar e preparar subconjuntos de dados adequados à
+    aplicação de técnicas de \textit{machine learning};
+  \item aplicar métodos de análise não supervisionada, como
+    \textit{clustering}, para identificar grupos de países ou
+    períodos com características socioeconómicas semelhantes;
+  \item aplicar modelos supervisionados de classificação e regressão
+    para analisar a relação entre variáveis como produtividade,
+    \textit{labour share} e indicadores de dependência externa;
+  \item avaliar o desempenho dos modelos através de métricas
+    apropriadas, como \textit{precision}, \textit{recall},
+    \textit{F1-score} e erro quadrático médio;
+  \item interpretar criticamente os resultados.
+\end{itemize}
+
+\section{Abordagem e estrutura do trabalho}
+
+Metodologicamente, o trabalho segue o processo de \textit{Knowledge
+Discovery in Databases} (KDD), compreendendo as etapas de seleção,
+pré-processamento, transformação, aplicação de técnicas de
+\textit{data mining} e interpretação/avaliação dos resultados. Esta
+abordagem permite estruturar de forma clara e reprodutível o percurso
+analítico desde os dados brutos até à extração de conhecimento.
+
+Do ponto de vista técnico, a implementação das análises é realizada em
+\textit{Python}, para variar com a escolha da etapa anterior, \textit{R},
+recorrendo a bibliotecas livres amplamente utilizadas na área da ciência de
+dados, como \texttt{Pandas}, \texttt{NumPy}, \texttt{Matplotlib},
+\texttt{Seaborn} e \texttt{Scikit-learn}. Esta escolha visa garantir a
+reprodutibilidade do trabalho, a transparência metodológica e a coerência com a
+opção por \textit{software} livre adotada ao longo de todo o projeto.
+
+\chapter{Enquadramento e Ferramentas}
+\section{Dados abertos e desigualdade laboral}
+
+Isto se baseia no relatório anterior
+
+\section{\textit{Data mining} e descoberta de conhecimento}
+
+Há uma diferença entre análise OLAP descritiva e descoberta e
+modelagem de padrões.
+
+\section{Ferramentas e bibliotecas utilizadas}
+
+\chapter{Metodologia}
+
+Existem muitas tarefas que involvem \textit{data mining} que eu
+consigo fazer usando os dados da minha \textit{data warehouse}.
+Fazemos \textit{clustering} para separar países ou regiões em como
+sendo do centro ou da períferia. Prevemos qual vai será o país com a
+maior descida do \textit{labour share} nos próximos anos. Conseguimos
+identificar períodos de crise e austeridade. Identificamos \textit{outliers}.
+
+Este trabalho segue o processo KDD. FALTA SÓ EXPLICAR CADA ETAPA.
+
+\section{Modelo de dados e Seleção}
+\label{sec:model}
+
+O modelo de dados é o resultado da etapa de engenharia de dados deste projeto.
+Consiste num modelo multidimensional de esquema floco de neve para data
+warehouse.
+
+Para esta etapa agora, vou decidir usar as seguintes informações desse modelo:
+\begin{itemize}
+  \item Informações geográficas acerca de países e regiões;
+  \item Indicadores macroeconómicos como o \textit{labour share}, a
+    "produtividade", os fluxos IDE, o índice Gini, salários;
+  \item O tempo.
+\end{itemize}
+
+A razão de escolhermos esses indicadores específicos é...
+
+Os dados do tempo começam desde o ano 1960, mas com
+bastante falta de dados nos países periféricos da altura. Então
+vou diminuir um pouco a janela em 10 anos, que coincide com:
+\begin{itemize}
+  \item Uma época de choques petrolíferos — a 16 de outubro de 1973,
+    delegados da Organização dos Países Exportadores de Petróleo (OPEP)
+    decidem aumentar a $70\%$ o preço do petróleo, e no dia seguinte
+    diferenciam os fornecimentos com base na posição dos países
+    consumidores e relação à guerra do Yom Kippur. A 5 de março de
+    1979, no Irão a exportação de petróleo é retomada, em quantidade
+    reduzida à metade em relação ao nível normal antes da crise;
+  \item Uma época de estagflação — inflação alta e um alto nível de
+    desemprego ao mesmo tempo;
+  \item Foi também nessa altura que a Europa e os EUA acabaram com a
+    conversibilidade do ouro, acelerando as suas financeirizações.
+\end{itemize}
+
+Todos estes dados e informações são comparáveis e de relevância.
+
+UNIT OF ANALYSIS country–year
+
+\section{Pré-processamento}
+
+Apesar de já termos diminuido a janela do tempo, ainda vão faltar dados, por
+diversas razões. Os dados podem não ser disponibilizados de forma consistente,
+nem que seja anualmente. Na maioria das vezes a ausência dos dados estão
+estruturalmente relacionados com posições periféricas.
+
+Os valores em falta foram tratados utilizando interpolação linear específica por país, aplicada apenas a lacunas internas curtas. Não foi realizada qualquer extrapolação, e as lacunas longas foram deixadas em falta. Esta abordagem preserva a continuidade temporal, evitando simultaneamente a fabricação de ausência de dados estruturais.
+
+Também é importante pensar sobre os \textit{outliers}, e como tratar
+dos mesmos. Mas muito desse trabalho consegue ser feito da
+etapa~\ref{sec:transform} já asseguir.
+
+\section{Transformação dos dados}
+\label{sec:transform}
+
+Alguns dados fará sentido serem normalizados. Um uso da normalização
+na primeira etapa do projeto foi na produtividade que variava
+demasiado entre regiões, e que por isso desviava as atenções do que
+realmente eu queria analisar. Ao normalizar a produtividade,
+"acabou-se" a variadade.
+
+Um exemplo de uma possível transformação está nos fluxos IED, onde tu
+encontras regiões com fluxos positivos de milhares de milhões, talvez
+até bilhões de IED, e outras regiões com fluxo negativo de alguns
+milhões de IED. As desparidades são enormes.
+
+Talvez seja necessário ocorrer ao uso a discretização para
+transformar variáveis contínuas (com valores infinitos) em variáveis
+discretas (onde tu consegues contar a quantidade de valor que a
+variável consegue ter). É uma transformação importante para modelos
+de classificação por exemplo.
+
+Lagged variables...
+
+É nesta etapa onde começamos a usufruir das bibliotecas Python já
+mencionadas.
+
+\section{Processo de \textit{data mining} (KDD)}
+
+\chapter{Experiências e Resultados}
+\section{Avaliação e métricas}
+
+\chapter{Discussão}
+\section{Interpretação económica e social}
+\section{Limitações dos modelos}
+
+\chapter{Conclusão}
+\label{ch:conclusion}
+
+\clearpage
+\printbibliography[title={Referências Bibliográficas}]
+
+\clearpage
+\chapter*{Licença}
+\addcontentsline{toc}{chapter}{Licença}
+\noindent
+Este documento está licenciado sob uma
+\href{https://creativecommons.org/licenses/by-sa/4.0/}{Licença
+  Creative Commons Atribuição–Partilha nos Mesmos Termos 4.0
+Internacional (CC BY-SA 4.0)}.
+
+\vspace{0.5cm}
+O código fonte (ficheiros \texttt{.tex}, \texttt{.bib},
+\texttt{Makefile}, etc.) utilizado para produzir este relatório está
+licenciado sob a
+\href{https://www.gnu.org/licenses/agpl-3.0.html}{GNU Affero General
+Public License v3.0 (AGPL v3)}.
+
+\clearpage
+\appendix
+
+\backmatter
+
+\end{document}

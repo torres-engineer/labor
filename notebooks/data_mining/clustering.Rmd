@@ -1,0 +1,331 @@
+---
+title: "Labor"
+author: "João Torres"
+date: "2026-01-05"
+bibliography: ../../docs/bibliography.bib
+link-citations: TRUE
+header-includes:
+  - \usepackage{graphicx}
+  - \usepackage{booktabs}
+  - \usepackage{amsmath}
+  - \usepackage{longtable}
+  - \setcounter{secnumdepth}{3}
+  - \setcounter{tocdepth}{3}
+---
+
+```{r, include=FALSE}
+library(reticulate)
+```
+
+```{python, download, include=FALSE}
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score
+from sklearn.decomposition import PCA
+from sklearn.cluster import AgglomerativeClustering
+import matplotlib.pyplot as plt
+from IPython.display import HTML, display
+
+dir = "../../data/selection"
+df = pd.read_parquet(f"{dir}/country_year_transformed.parquet")
+
+features = [
+    "labor_share_final",
+    "productivity_final",
+    "gini_final",
+    "fdi_net_gdp_final",
+    "avg_hourly_wage_final"
+]
+```
+
+Para que o _$k$-means_ calcule cada distância entre os pontos, cada valor de da
+tupla de dados da unidade de análise precisa existir.
+
+Excluir os valores ausentes aqui parece ser a melhor opção, uma vez que a fase
+de pré-processamento e transformação já agiu sobre os valores ausentes. E caso
+mais transformações aos dados tenhamm que ser feitas, isso é algo para a etapa
+anterior.
+
+```{python, include=FALSE}
+original_count = len(df)
+missing_summary = pd.DataFrame({
+    'feature': features,
+    'Valores ausentes': df[features].isnull().sum(),
+    '%': df[features].isnull().mean() * 100
+})
+```
+
+```{r, missing, echo=FALSE}
+knitr::kable(py$missing_summary, longtable=TRUE)
+```
+
+```{python, echo=FALSE}
+df_cluster = df.dropna(subset=features).copy()
+dropped_count = original_count - len(df_cluster)
+print(f"{dropped_count} linhas eliminadas")
+```
+
+Esta escolha fez-nos perder $10$ mil linhas.
+
+O $k$-means usa o número de clusters como parâmetros e a distância entre pontos como métrica.
+
+O _Ward's method_ pode usar o número de clusters ou limites de distância e usa a mesma métrica que o k-means.
+
+Vamos ler o que o [`scikit-learn`](https://scikit-learn.org/stable/modules/clustering.html#k-means)
+tem para nos ensinar acerca do $k$-means:
+
+> O algoritmo $k$-means agrupa dados tentando separar amostras em $n$ grupos de
+> variância igual.
+>
+> O algoritmo $k$-means divide um conjunto de $N$ amostras $X$ em $K$
+> _clusters_ disjuntos $C$, cada um descrito pela média das amostras no
+> _cluster_. As médias são comumente chamadas de «centróides» do _cluster_;
+>
+> O $k$-means é frequentemente referido como algoritmo de Lloyd. Em termos
+> básicos, o algoritmo tem três etapas. A primeira etapa escolhe os centróides
+> iniciais, sendo o método mais básico escolher amostras do conjunto de dados.
+> Após a inicialização, o $k$-means consiste em um _loop_ entre as duas outras
+> etapas. A primeira etapa atribui cada amostra ao seu centroide mais próximo.
+> A segunda etapa cria novos centroides, tomando o valor médio de todas as
+> amostras atribuídas a cada centroide anterior. A diferença entre os
+> centroides antigos e novos é calculada e o algoritmo repete estas duas
+> últimas etapas até que este valor seja inferior a um limite. Em outras
+> palavras, ele repete até que os centroides não se movam significativamente.
+
+Também é possível encontrar [exemplos de como usar a biblioteca para esta
+tarefa específica](https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_assumptions.html#sphx-glr-auto-examples-cluster-plot-kmeans-assumptions-py).
+
+Todas as variáveis foram normalizadas antes de criar os _clusters_ usando o
+[`StandardScaler.fit_transform`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler.fit_transform).
+Isso porque queremos que os centróides estejam próximos da média de um
+_cluster_. Também podemos ter algumas _features_ da unidade de análise com
+escalas muito diferentes umas das outras.
+
+```{python, include=FALSE}
+scaler = StandardScaler()
+
+X = scaler.fit_transform(df_cluster[features])
+```
+
+Vamos começar a usar a biblioteca [`scikit-learn`](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans)
+para termos acesso ao algoritmo $k$-means sem o ter que implementar.
+
+Mas antes, temos que decidir qual é o número de _clusters_ que nós queremos ter
+no resultado da análise. Existem uns números que são melhores que outros, e
+existem algoritmos, como o _silhouette_ e o de indíce de _Davies–Bouldin_ que
+nos dizem quais são.
+
+Dentro das respostas que o _silhouette_ nos dá, devemos escolher o maior valor,
+ou um dos máximos locais, e evitar números muito grandes sem uma justificação
+teorica. Para o índice de _Davies–Bouldin_, menor o valor, melhor.
+
+```{python, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+K_range = range(2, 7 + 4)
+
+results = []
+
+for k in K_range:
+    kmeans = KMeans(
+        init="k-means++",
+        n_clusters=k,
+        n_init=20,
+        random_state=None
+    )
+    labels = kmeans.fit_predict(X)
+    results.append({
+        "k": k,
+        "silhouette": silhouette_score(X, labels),
+        "davies_bouldin": davies_bouldin_score(X, labels)
+    })
+
+eval_df = pd.DataFrame(results)
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(eval_df["k"], eval_df["silhouette"], marker="o", color="blue", label="Silhouette")
+ax1.set_xlabel("Number of clusters (k)")
+ax1.set_ylabel("Silhouette")
+
+ax2 = ax1.twinx()
+ax2.plot(eval_df["k"], eval_df["davies_bouldin"], marker="o", color="red", label="Davies–Bouldin")
+ax2.set_ylabel("Indíce Davies–Bouldin")
+
+plt.title("Métricas de _cluster_ por número de _clusters_")
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1 + lines2, labels1 + labels2)
+
+plt.tight_layout()
+plt.show()
+```
+
+Reparamos que a melhor escolha para número de clusters com certeza é o $3$,
+apesar de que escolher $7$ não parece uma opção tão má assim, aliás,
+na _data warehouse_ os países estão dívididos em $7$ regiões.
+
+```{python, include=FALSE}
+k_opt = eval_df.loc[eval_df["silhouette"].idxmax(), "k"]
+
+kmeans = KMeans(
+  init="k-means++",
+  n_clusters=k_opt,
+  n_init=20,
+  random_state=None
+)
+
+df_cluster["cluster"] = kmeans.fit_predict(X)
+
+df = df.merge(
+    df_cluster[["country", "year", "cluster"]],
+    on=["country", "year"],
+    how="left"
+)
+```
+
+Aplicando o algoritmo, conseguimos ver quantos países (juntamente com o ano)
+é que ficaram em cada um dos clusters. O objetivo é não ficar com clusters
+pequenos, ou com um enorme que engloba quase tudo.
+
+```{python, include=FALSE}
+n_per_cluster = df_cluster["cluster"].value_counts().sort_index()
+```
+
+```{r, echo=FALSE}
+knitr::kable(py$n_per_cluster)
+```
+
+```{python, include=FALSE}
+centroids = pd.DataFrame(
+    scaler.inverse_transform(kmeans.cluster_centers_),
+    columns=features
+)
+
+centroids["cluster"] = centroids.index
+```
+
+Conseguimos ver o valor de cada _feature_ para cada _centroid_.
+
+```{r, echo=FALSE}
+knitr::kable(py$centroids)
+```
+
+Também é possível analisar com que grupo de rendimento e região do globo é que cada centroid se identifica mais, ou de outra forma, como é que um país, dependendo da sua região geográfica e nível de rendimento, fica agrupado com outros.
+
+```{python, include=FALSE}
+cluster_income_group = pd.crosstab(
+    df_cluster["cluster"],
+    df_cluster["income_group"],
+    normalize="index"
+)
+
+cluster_region = pd.crosstab(
+    df_cluster["cluster"],
+    df_cluster["region"],
+    normalize="index"
+)
+```
+
+```{r, echo=FALSE}
+knitr::kable(py$cluster_income_group, longtable=TRUE)
+```
+```{r, echo=FALSE}
+knitr::kable(py$cluster_region, longtable=TRUE)
+```
+
+Vamos criar uma visualização, usando como base o exemplo ["Visualize the results on PCA-reduced data"](https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_digits.html#sphx-glr-auto-examples-cluster-plot-kmeans-digits-py).
+
+```{python, echo=FALSE, fig.dim=c(8, 8), out.width = '100%'}
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+kmeans.fit(X_pca)
+
+# Step size of the mesh. Decrease to increase the quality of the VQ.
+h = 0.01  # point in the mesh [x_min, x_max]x[y_min, y_max].
+
+# Plot the decision boundary. For that, we will assign a color to each
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+# Obtain labels for each point in mesh. Use last trained model.
+Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
+
+Z = Z.reshape(xx.shape)
+plt.figure(1)
+plt.clf()
+plt.imshow(
+    Z,
+    interpolation="nearest",
+    extent=(xx.min(), xx.max(), yy.min(), yy.max()),
+    cmap=plt.cm.Paired,
+    aspect="auto",
+    origin="lower",
+)
+
+for c in np.sort(np.unique(kmeans.labels_)):
+    sub = X_pca[kmeans.labels_ == c]
+    plt.plot(
+        sub[:, 0],
+        sub[:, 1],
+        ".",
+        markersize=2,
+        label=f"Cluster {c}",
+    )
+
+# Plot the centroids as a white X
+centroids = kmeans.cluster_centers_
+plt.scatter(
+    centroids[:, 0],
+    centroids[:, 1],
+    marker="x",
+    s=169,
+    linewidths=3,
+    color="w",
+    zorder=10,
+)
+plt.title(
+    "K-means clustering on country–year clusters (PCA-reduced data)\n"
+    "Centroids are marked with white cross"
+)
+plt.xlim(x_min, x_max)
+plt.ylim(y_min, y_max)
+plt.xticks(())
+plt.yticks(())
+plt.legend()
+plt.show()
+```
+
+Um modelo de agrupamento k-means foi aplicado às observações por país e ano utilizando
+indicadores macroeconómicos e laborais padronizados. O número de agrupamentos foi
+selecionado através de uma análise de _silhouette_, e os agrupamentos resultantes foram
+interpretados comparando a composição dos agrupamentos com as classificações regionais e
+de rendimento existentes.
+
+
+```{python, include=FALSE}
+# Evaluation
+
+sil_score = silhouette_score(X, df_cluster["cluster"])
+db_score = davies_bouldin_score(X, df_cluster["cluster"])
+
+ward = AgglomerativeClustering(
+    n_clusters=k_opt,
+    linkage="ward"
+)
+
+df_cluster["cluster_ward"] = ward.fit_predict(X)
+
+sil_ward = silhouette_score(X, df_cluster["cluster_ward"])
+db_ward = davies_bouldin_score(X, df_cluster["cluster_ward"])
+
+comparison = pd.DataFrame({
+    "model": ["k-means", "Ward"],
+    "silhouette": [sil_score, sil_ward],
+    "davies_bouldin": [db_score, db_ward]
+})
+
+print(comparison)
+```
+

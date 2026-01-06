@@ -15,8 +15,8 @@ UML_PDFS=$(UML_PUML:.puml=.pdf)
 UML_EPS=$(UML_PUML:.puml=.eps)
 
 NOTEBOOKSDIR=../notebooks
-RMD=$(NOTEBOOKSDIR)/analysis.Rmd
-ANALYSIS_TEX=$(NOTEBOOKSDIR)/analysis.tex
+RMD=$(NOTEBOOKSDIR)/data_mining/clustering.Rmd
+ANALYSIS_TEX=$(NOTEBOOKSDIR)/data_mining/clustering.tex
 
 .PHONY: all analysis pdf ps clean veryclean watch uml
 
@@ -29,6 +29,7 @@ $(ANALYSIS_TEX): $(RMD)
 	Rscript -e "rmarkdown::render('$(RMD)', output_format='pdf_document')"
 	Rscript -e "rmarkdown::render('$(RMD)', output_format='latex_fragment')"
 	ln -sf $(NOTEBOOKSDIR)/analysis_files analysis_files
+	ln -sf $(NOTEBOOKSDIR)/data_mining/clustering_files clustering_files
 	@# Convert the produced .tex into a standalone fragment if needed
 	@# rmarkdown places output in notebooks/, so we're good.
 

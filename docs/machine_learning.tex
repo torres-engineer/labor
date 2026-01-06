@@ -339,16 +339,64 @@ reprodutibilidade do trabalho, a transparência metodológica e a coerência com
 opção por \textit{software} livre adotada ao longo de todo o projeto.
 
 \chapter{Enquadramento e Ferramentas}
+
 \section{Dados abertos e desigualdade laboral}
 
-Isto se baseia no relatório anterior
+Tal como no relatório anterior, o foco é novamente a exploração e a desigualdade laboral à escala global. Os dados abertos, já os temos numa \textit{data warehouse} (aquela construída na etapa anterior) a partir de um processo ETL. A diferença está na forma de como vamos analisar analisar os dados. Na etapa anterior, analisamos os dados com base na sua evolução ao longo do tempo, respondendo à pergunta "o que foi que aconteceu?". Agora, a pergunta é mais "o que está a acontecer (agora) e o que vai acontecer". \textit{Data mining} é um processo de descoberta de padrões e outras informações valiosas, a partir de grandes conjuntos de dados, como é o exemplo da nossa \textit{data warehouse}.
+
+Na etapa anterior, foi feita uma análise comparativa entre regiões e grupos de rendimento, onde se verificava uma diferença clara entre os países centrais e os periféricos no que toca a níveis de \textit{labour share} e de produtividade. Mas isso apenas acontecia quando olhávamos para os dados a nível global. Era um paradoxo de Simpson, onde vendo os dados todos agregados, dava a ideia de que países mais produtivos garantem um melhor salário ao trabalhador, mas quando faziamos a mesma análise regionalmente, viamos uma história diferente: o aumento da produtividade não se traduzia num aumento igual do \textit{labour share}, que ou continuava estagnado, ou até descia um pouco! Isto em todo o globo. Esta análise não seria possível sem a possiblidade de fazer OLAP, mostrando a importância de um modelo multidimensional. E isto apenas usando alguns indicadores macroeconómicos.
+
+Também mostrou-se a capacidade dos dados abertos e do software livre de fazer todas as tarefas que um software proprietário consegue fazer, e para além disso, conseguimos ter um projeto reproduzivél em qualquer máquina — desde que tenha o software livre instalado obviamente, mas isso ia ser um requesito para qualquer software que eu escolhe-se usar) —, e que partilha uma posição ética sobre o papel do software livre no ensino.
 
 \section{\textit{Data mining} e descoberta de conhecimento}
 
-Há uma diferença entre análise OLAP descritiva e descoberta e
-modelagem de padrões.
+Como foi dito brevemente em cima, uma análise, usando OLAP, é uma análise descritiva. Usando dados que já existem das diferentes dimensões da \textit{data warehouse}, tu crias um sumário sobre o que foi que aconteceu, onde e porquê. Não é automáticamente que tu vais ter a razão para a resposta para estas perguntas, e para isso, tens que recorrer ao \textit{data mining} e \textit{machine learning}.
+
+O objetivo do \textit{data mining} é aprender sobre informações escondidas, relações causais e preditivas, correlações, entre os dados. reponde a perguntas como o que é mais provável, o que vai ou pode acontecer ou porquê que aconteceu.
+
+Apesar de serem coisas diferentes, eu acho que ambas se complementam muito bem. O processo de \textit{data mining} não seria possível sem alguém primeiro ter feito o processo da engenharia de dados, ou pelo menos seria mais complicado. Por eu ter feito o processo de análise OLAP, isso deu-me a capacidade de eu saber o quais são os padrões que eu quero descobrir com o \textit{data mining}, até para ver se esses resultados suportam a minha análise. Também seria possível concerteza exportar os resultados dos modelos de \textit{data mining} para a \textit{data warehouse} através do processo ETL, criando uma espécie de \textit{loop} onde o conhecimento, cria mais conhecimento, mas sem nunca substituir o valor dos dados originais.
+
+Existem vários modelos de \textit{data mining}. Uns são mais adequados para dados discretos (valores finitos) e outros para dados contínuos (valores infinitos). Esses modelos também se podem separar em modelos de \textit{supervised} e \textit{unsupervised} textit{learning}. Os modelos \textit{supervised} recebem variáveis independentes associadas com um rótulo representante da tupla dessas variáveis independentes (variável dependente), que pode ser uma variável discreta ou contínua. No caso dos modelos \textit{unsupervised}, ao modelo é apenas lhe dados as variáveis independentes, e tem que achar qual seria um valor que seria a substituição da variável dependente em falta.
+
+O tipo das variável independente vai influenciar o tipo do modelo também. Por exemplo, no caso dos modelos de \textit{supervised learning}, quando as variáveis dependentes são discretas, estamos perante um modelo de classificação, e quando são contínuas, de um modelo de regressão.
+
+No ano passado fiz um projeto \autocite{langid} onde aprendi os básicos dos modelos \textit{supervised}, implementando do zero um sistema de \textit{neural network} sem o uso de bibliotecas, já que elas funcionam como uma caixa fechada que, de certa forma, fazem com que tu não a queiras abrir para aprender como é que ela realmente funciona por dentro, e que por isso, apesar de essas bibliotecas facilitarem a tua vida, elas abstraem o conhecimento e não te deixam entender de verdade as coisas. Esse projeto certamente ajudou-me neste agora. Foi um projeto onde aprendi os fundamentos, que são necessários para aprender tudo o resto se um dia quiser.
 
 \section{Ferramentas e bibliotecas utilizadas}
+
+Nesta etapa, decidi variar e usar o Python como linguagem de programação. Não foi apenas para variar. É também porque sei que na área de \textit{data mining} e \textit{machine learning}, o que não faltam são bibliotecas.
+
+Como o \textit{data warehouse} está numa base de dados \href{https://duckdb.org/docs/api/python/overview}{DuckDB}, usei a API que eles têm para Python apenas na fase de seleção de dados do KDD~\ref{sec:model}.
+
+Na decomentação dessa API, encontrei 4 formas de trabalhar com os dados retirados da \textit{data warehouse} que fossem substituir os \mintinline{r}{data.frame}s do R, tirando os objetos do Python:
+
+\begin{itemize}
+    \item \href{https://pandas.pydata.org/}{Pandas} — uma ferramenta para manipulação e análise de dados;
+    \item \href{https://pola.rs/}{Polars} — também uma ferramenta para manipulação de dados, mas que promete mais eficiência que as alternativas;
+    \item \href{https://arrow.apache.org/docs/python/index.html}{Apache Arrow} — ferramenta para guardar e manipular dados num formato colunar, na memória, que depois pode ser acessado por outros processos. Não parece ser bem o que precisamos;
+    \item \href{https://numpy.org/pt/}{NumPy} — segundo eles «a biblioteca fundamental para computação científica».
+\end{itemize}
+
+As únicas opções que realmente pareceram uma alternativa aos \mintinline{r}{data.frame}s foram as primeiras duas, sendo a primeira a única de que já tinha ouvido falar das duas, e por isso optei por usar essa.
+
+Não desvalorizando o NumPy, que no futuro poderá ter outras funcionalidades que venham a ser necessárias. Mas por enquanto, fica na gaveta.
+
+Fui procurar ao sítio web \href{https://roadmap.sh/}{roadmap.sh} mais
+informação que me poderia ajudar, porque sabia que cada vez exitem mais
+\textit{roadmaps} e que alguns deles eram relacionados a esta tarefa. No
+\textit{roadmap} \href{https://roadmap.sh/machine-learning}{\textit{Machine
+Learning}} encontrei refrências à biblioteca
+\href{https://github.com/scikit-learn/scikit-learn}{\texttt{scikit-learn}}:
+«Scikit-learn é uma biblioteca Python gratuita e de código aberto que fornece
+ferramentas simples e eficientes para análise de dados e aprendizagem
+automática. Possui vários algoritmos para classificação, regressão,
+agrupamento, redução de dimensionalidade, seleção de modelos e
+pré-processamento. É construída sobre NumPy, SciPy e matplotlib, facilitando a
+integração com outras bibliotecas científicas Python.»
+
+% matplotlib / seaborn
+% statsmodels (for regression interpretation)
+% scipy (hierarchical clustering)
 
 \chapter{Metodologia}
 
@@ -359,14 +407,25 @@ sendo do centro ou da períferia. Prevemos qual vai será o país com a
 maior descida do \textit{labour share} nos próximos anos. Conseguimos
 identificar períodos de crise e austeridade. Identificamos \textit{outliers}.
 
-Este trabalho segue o processo KDD. FALTA SÓ EXPLICAR CADA ETAPA.
+Este trabalho segue o processo KDD. Começamos com a preparação de dados. Na
+seleção, tentamos remover de imediato dados que podem projudicar os resultados
+do nosso modelo. Bons dados produzem bons resultados. Depois de os dados a
+utilizar estárem defenidos, passamos por uma etapa de pré-processamento onde
+tentamos polir os dados da seleção, que podem vir incompletos ou
+inconsistentes, ou alguma parte deles pode até ser redundante, e por isso
+descartados. Por fim, e para não modificar mais os dados daqui para a frente,
+normalizamos, derivamos valores a partir de outros, discretizamos
+(transformando variáveis contínuas em variáveis discretas). Neste momento
+estamos prontos para aprender. Aplicamos o algoritmo e avaliamos as respostas,
+e com base nelas tomamos desisões que podem servir para reformar os passos
+anteriores de forma a obter uma melhor resposta da próxima vez.
 
 \section{Modelo de dados e Seleção}
 \label{sec:model}
 
 O modelo de dados é o resultado da etapa de engenharia de dados deste projeto.
-Consiste num modelo multidimensional de esquema floco de neve para data
-warehouse.
+Consiste num modelo multidimensional de esquema floco de neve para \textit{data
+warehouse}.
 
 Para esta etapa agora, vou decidir usar as seguintes informações desse modelo:
 \begin{itemize}
@@ -376,7 +435,9 @@ Para esta etapa agora, vou decidir usar as seguintes informações desse modelo:
   \item O tempo.
 \end{itemize}
 
-A razão de escolhermos esses indicadores específicos é...
+A razão de escolhermos esses indicadores específicos são porque foram os
+utilizados também na etapa de análise da etapa anterior do projeto, o que
+permite no final ligar os resultados do \texit{data mining} com essa análise.
 
 Os dados do tempo começam desde o ano 1960, mas com
 bastante falta de dados nos países periféricos da altura. Então
@@ -397,7 +458,14 @@ vou diminuir um pouco a janela em 10 anos, que coincide com:
 
 Todos estes dados e informações são comparáveis e de relevância.
 
-UNIT OF ANALYSIS country–year
+Mesmo assim, ainda é muito provável que vá existir muita falta de dados mesmo
+passado 10 anos, especialmente nos países periféricos, como tinha sido notado
+durante o ETL. Mas talvez a falta de dados faça com que o modelo entenda alguma
+diferença entre diferentes unidades de análise, e que por isso permita
+responder com informações mais interessantes. Mas também pela relevância
+histórica do século de 1970.
+
+O que nós pretendemos analisar são países num determinado ano civil.
 
 \section{Pré-processamento}
 
@@ -432,22 +500,147 @@ discretas (onde tu consegues contar a quantidade de valor que a
 variável consegue ter). É uma transformação importante para modelos
 de classificação por exemplo.
 
-Lagged variables...
+% Lagged variables...
 
 É nesta etapa onde começamos a usufruir das bibliotecas Python já
 mencionadas.
 
 \section{Processo de \textit{data mining} (KDD)}
 
-\chapter{Experiências e Resultados}
-\section{Avaliação e métricas}
+The analytical workflow combines interactive notebooks with
+text-based representations using Jupytext, enabling reproducible
+execution and version control. Analytical results are exported as
+LaTeX fragments and incorporated directly into the final report,
+ensuring consistency between code, results and documentation.
 
-\chapter{Discussão}
-\section{Interpretação económica e social}
-\section{Limitações dos modelos}
+O fluxo de trabalho nesta etapa combina \textit{notebooks}, outra vez usando
+\href{https://rmarkdown.rstudio.com/}{R Markdown}, permitindo a execução
+reproduzível e o controlo de versão. Os resultados analíticos são exportados
+como fragmentos LaTeX e incorporados diretamente neste relatório final,
+garantindo a consistência entre o código, os resultados e a documentação.
+
+\subsection{\textit{Clustering} de países por posição estrutural}
+
+Um dos objetivos exploratórios deste trabalho consiste na identificação de grupos de países com dinâmicas semelhantes em termos da relação trabalho–capital, isto é, à forma como produtividade, salários, \textit{labour share} e desigualdade evoluem de forma conjunta ao longo do tempo. A técnica de \textit{clustering} permite abordar este problema sem impor categorias \textit{a priori}, sendo, por isso, adequada a uma análise exploratória de natureza estrutural.
+
+Cada país é descrito por um conjunto de indicadores macroeconómicos e laborais derivados do modelo multidimensional construído na etapa de engenharia de dados \ref{sec:model}. Todos os dados utilizados nesta etapa correspondem à versão final pré-processada, após tratamento de valores em falta e transformações necessárias, conforme descrito na secção metodológica anterior.
+
+O recurso ao \textit{clustering} apresenta uma vantagem adicional: os países encontram-se já classificados, na \textit{data warehouse}, por região geográfica e níveis de rendimento. Tal permite comparar os agrupamentos obtidos por métodos de \textit{data mining} com categorias amplamente utilizadas na literatura económica, avaliando em que medida estas correspondem — ou não — a padrões empíricos observáveis nos dados.
+
+Foram considerados dois algoritmos de \textit{clustering}: o método dos $k$-médias (\textit{$k$-means}) e o \textit{Ward's method}. O primeiro permite identificar partições compactas baseadas na minimização da variância intra-grupo, enquanto o segundo fornece uma representação hierárquica das semelhanças entre países, sendo particularmente útil para a análise exploratória de estruturas aninhadas.
+
+É um bom desafio apenas para começar, e talvez, como foi para mim, a primeira idea de como aplicar \textit{data mining} num modelo multidimensional como o deste projeto, e a contextualização da~\ref{ch:intro}, que te vêm à cabeça. Por ser também um problema de \textit{unsupervised learning}, tu sabes os dados que tens para oferecer ao modelo, mas não sabes ainda o que queres tirar de lá, e talvez por essa natureza, seja o primeiro tipo de problema que me veio à cabeça, quase como se tivesse que pensar menos.
+
+A escolha do \textit{clustering} como primeira técnica de \textit{data mining} aplicada neste projeto pode ser que por ele se tratar de um problema de \textit{unsupervised learning}, parte-se do pressuposto de que os dados disponíveis descrevem padrões estruturais ainda não totalmente conhecidas. O objetivo não é revelar esses padrões, regimes e trajetórias possíveis que possam, posteriormente, ser interpretados com base no enquadramento teórico apresentado na introdução~\ref{ch:intro}.
+
+\input{../notebooks/data_mining/clustering.tex}
+
+% Intrepretação: Clusters ≠ “development levels”; Structural positions
+% in global accumulation
+
+% \subsection{Classificação: previsão de regimes com baixo \textit{labour share}}
+%
+% Agora vamos prever se uma \textit{unit of analysis} pertence a um
+% regime de baixo \textit{labour share}. Podemos usar um percentil (ou
+% a própria mediana) como a separação entre o baixo e o alto
+% \textit{labour share}. Para isto vamos, para além dos outros
+% indicadores usar os valores que seriam os anteriores ao valor do
+% \textit{labour share} que queremos prever.
+%
+% Algorithms
+% Logistic Regression (baseline, interpretable)
+% Random Forest (non-linear, robust)
+%
+% Why
+% Allows precision / recall
+% Teacher explicitly mentioned these metrics
+%
+% Evaluation
+% Precision
+% Recall
+% F1-score
+% Confusion matrix
+% Cross-validation (important!)
+%
+% Interpretation
+% False negatives = countries wrongly seen as “doing well”
+% False positives = overestimating crisis
+%
+% Classification (supervised)
+%
+% \subsection{Regressão: produtividade versus \textit{labour share}}
+%
+% Para acabar e de modo a testar a minha hipótese principal da tarefa
+% anterior de engenharia de dados, quantitativamente.
+%
+% Models
+% Linear regression
+% Ridge / Lasso (to control multicollinearity)
+%
+% Evaluation
+% RMSE
+% R²
+% Residual analysis
+%
+% Interpretation
+% Weak or negative coefficients ≠ “failure”
+% Evidence of structural decoupling
+%
+% Regression (supervised, continuous)
+%
+% The results suggest a structural decoupling between productivity
+% growth and labor compensation, consistent with theoretical
+% perspectives that emphasize unequal value capture within the global
+% division of labor.
+
+% \chapter{Experiências e Resultados}
+% \section{Avaliação e métricas}
+%
+% \chapter{Discussão}
+% \section{Interpretação económica e social}
+% \section{Limitações dos modelos}
 
 \chapter{Conclusão}
 \label{ch:conclusion}
+
+Este trabalho teve como objetivo explorar a aplicação de técnicas de
+\textit{data mining} e \textit{machine learning} a um \textit{data warehouse}
+multidimensional construído a partir de dados abertos sobre trabalho e economia
+à escala global. Partindo de uma base sólida de engenharia de dados e análise
+OLAP desenvolvida na etapa anterior do projeto, esta fase procurou avançar para
+uma análise exploratória mais profunda, orientada para a identificação de
+padrões estruturais nas desigualdades laborais.
+
+A utilização de métodos de aprendizagem não supervisionada, em particular
+técnicas de \textit{clustering}, permitiu agrupar países–ano com base em
+indicadores macroeconómicos e laborais relevantes, sem impor categorias
+pré-definidas. Os resultados obtidos evidenciam que as dinâmicas observadas não
+se reduzem a simples níveis de desenvolvimento, mas refletem posições
+estruturais distintas na divisão internacional do trabalho, coerentes com a
+literatura crítica sobre desigualdade e dependência económica.
+
+Do ponto de vista metodológico, o trabalho demonstrou a importância do processo
+KDD enquanto enquadramento estruturado para a descoberta de conhecimento,
+bem como o papel central do pré-processamento, transformação e avaliação dos
+modelos na obtenção de resultados interpretáveis e consistentes. A comparação
+entre métricas como o \textit{silhouette score} e o índice de
+\textit{Davies–Bouldin} revelou-se essencial para fundamentar a escolha dos
+modelos e parâmetros utilizados.
+
+Em termos técnicos, a opção por ferramentas de \textit{software} livre e dados
+abertos revelou-se adequada, permitindo garantir a reprodutibilidade,
+transparência e extensibilidade do trabalho. A integração entre análise
+programática e documentação científica reforça igualmente a coerência entre
+código, resultados e interpretação.
+
+Por fim, importa salientar que os resultados apresentados devem ser entendidos
+como exploratórios. As limitações inerentes à disponibilidade e qualidade dos
+dados, bem como às escolhas metodológicas realizadas, apontam para a necessidade
+de análises futuras, nomeadamente através da aplicação de modelos
+supervisionados e da incorporação de novas variáveis. Ainda assim, o trabalho
+contribui para uma leitura empírica crítica das desigualdades laborais globais e
+demonstra o potencial das técnicas de \textit{data mining} como ferramentas de
+análise no domínio das ciências sociais.
 
 \clearpage
 \printbibliography[title={Referências Bibliográficas}]
